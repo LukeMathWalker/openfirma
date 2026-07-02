@@ -1636,11 +1636,13 @@ cargo.rust_library(
     features = [
         "color",
         "derive",
+        "env",
         "error-context",
         "help",
         "std",
         "suggestions",
         "usage",
+        "wrap_help",
     ],
     visibility = [],
     deps = [
@@ -1673,11 +1675,13 @@ cargo.rust_library(
     },
     features = [
         "color",
+        "env",
         "error-context",
         "help",
         "std",
         "suggestions",
         "usage",
+        "wrap_help",
     ],
     visibility = [],
     deps = [
@@ -1685,6 +1689,7 @@ cargo.rust_library(
         ":anstyle-1",
         ":clap_lex-1",
         ":strsim-0.11",
+        ":terminal_size-0.4",
     ],
 )
 
@@ -13362,6 +13367,7 @@ cargo.rust_library(
         "macros",
         "mio",
         "net",
+        "process",
         "rt",
         "rt-multi-thread",
         "signal",

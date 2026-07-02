@@ -15,3 +15,21 @@ cargo.rust_library(
         "//third-party:toml",
     ],
 )
+
+cargo.rust_library(
+    name = "firma_config_loader_clap",
+    crate = "firma_config_loader",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    features = ["clap"],
+    srcs = glob(["src/**/*.rs"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third-party:anyhow",
+        "//third-party:clap",
+        "//third-party:fs-err",
+        "//third-party:serde",
+        "//third-party:thiserror",
+        "//third-party:toml",
+    ],
+)
