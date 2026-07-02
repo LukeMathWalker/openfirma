@@ -9,8 +9,11 @@ TEST_DEPS = [
     ":firma_runtime_state",
     "//third-party:insta",
     "//third-party:nix",
+    "//third-party:serde",
     "//third-party:tempfile",
+    "//third-party:thiserror",
     "//third-party:toml",
+    "//third-party:tracing",
 ]
 
 cargo.rust_library(
@@ -30,6 +33,16 @@ cargo.rust_library(
         "prelude//os/constraints:windows": ["//third-party:windows-sys"],
         "DEFAULT": ["//third-party:nix"],
     }),
+)
+
+native.rust_test(
+    name = "unit_tests",
+    crate = "firma_runtime_state",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    env = TEST_ENV,
+    srcs = glob(["src/**/*.rs"]),
+    deps = TEST_DEPS,
 )
 
 native.rust_test(
