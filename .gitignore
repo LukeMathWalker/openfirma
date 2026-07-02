@@ -71,6 +71,7 @@ fuzz/corpus/**
 !fuzz/corpus/**/*.toml
 
 # Coverage artefacts
+bazel-coverage.lcov
 codecov.json
 
 !.skills/build

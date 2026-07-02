@@ -69,6 +69,10 @@ check: fmt lint test build audit deny
 coverage:
   cargo llvm-cov nextest --workspace --all-features --codecov --output-path codecov.json
 
+bazel-coverage:
+  bazel coverage //... --combined_report=lcov --instrumentation_filter='^//crates[/:]'
+  cp "$(bazel info output_path)/_coverage/_coverage_report.dat" bazel-coverage.lcov
+
 fuzz-check:
   nightly="$(< .rust-nightly)"
   cd fuzz && cargo +"$nightly" check
