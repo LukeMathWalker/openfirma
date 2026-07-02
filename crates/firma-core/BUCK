@@ -1,0 +1,22 @@
+load("@prelude//rust:cargo_package.bzl", "cargo")
+
+cargo.rust_library(
+    name = "firma_core",
+    crate = "firma_core",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]) + ["firma.cedarschema"],
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third-party:async-trait",
+        "//third-party:cedar-policy",
+        "//third-party:chrono",
+        "//third-party:http",
+        "//third-party:pasetors",
+        "//third-party:regex",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:thiserror",
+        "//third-party:uuid",
+    ],
+)
