@@ -1,0 +1,4 @@
+common --enable_bzlmod
+
+# Keep Bazel outputs out of source directories unless explicitly requested.
+build --experimental_convenience_symlinks=ignore
