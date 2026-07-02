@@ -47,7 +47,13 @@ bazel-lint:
 bazel-rustfmt:
   bazel build //... --aspects=@rules_rust//rust:defs.bzl%rustfmt_aspect --output_groups=rustfmt_checks
 
-bazel-check: bazel-build bazel-test bazel-lint bazel-rustfmt
+bazel-audit:
+  bazel run //bazel:cargo_audit_check
+
+bazel-deny:
+  bazel run //bazel:cargo_deny_check
+
+bazel-check: bazel-build bazel-test bazel-lint bazel-rustfmt bazel-audit bazel-deny
 
 e2e:
   cargo nextest run -p firma --test e2e --run-ignored all

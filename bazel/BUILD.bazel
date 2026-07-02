@@ -1,1 +1,17 @@
-exports_files(["rust_tests.bzl"])
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+sh_binary(
+    name = "cargo_audit_check",
+    srcs = ["cargo_audit_check.sh"],
+)
+
+sh_binary(
+    name = "cargo_deny_check",
+    srcs = ["cargo_deny_check.sh"],
+)
+
+exports_files([
+    "cargo_audit_check.sh",
+    "cargo_deny_check.sh",
+    "rust_tests.bzl",
+])
