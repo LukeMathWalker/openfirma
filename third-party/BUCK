@@ -3067,7 +3067,10 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "14",
         "CARGO_PKG_VERSION_PRE": "",
     },
-    features = ["std"],
+    features = [
+        "default",
+        "std",
+    ],
     visibility = [],
     deps = [":libc-0.2"],
 )
@@ -6589,6 +6592,39 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_MINOR": "7",
         "CARGO_PKG_VERSION_PATCH": "1",
         "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :oid-registry-0.7-build-script-run[out_dir])",
+    },
+    features = [
+        "crypto",
+        "default",
+        "kdf",
+        "nist_algs",
+        "pkcs1",
+        "pkcs12",
+        "pkcs7",
+        "pkcs9",
+        "registry",
+        "x509",
+        "x962",
+    ],
+    rustc_flags = ["@$(location :oid-registry-0.7-build-script-run[rustc_flags])"],
+    visibility = [],
+    deps = [":asn1-rs-0.6"],
+)
+
+cargo.rust_binary(
+    name = "oid-registry-0.7-build-script-build",
+    srcs = [":oid-registry-0.7.1.crate"],
+    crate = "build_script_build",
+    crate_root = "oid-registry-0.7.1.crate/build.rs",
+    edition = "2018",
+    env = {
+        "CARGO_PKG_NAME": "oid-registry",
+        "CARGO_PKG_VERSION": "0.7.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "7",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
         "crypto",
@@ -6604,7 +6640,32 @@ cargo.rust_library(
         "x962",
     ],
     visibility = [],
-    deps = [":asn1-rs-0.6"],
+)
+
+buildscript_run(
+    name = "oid-registry-0.7-build-script-run",
+    package_name = "oid-registry",
+    buildscript_rule = ":oid-registry-0.7-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "7",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "crypto",
+        "default",
+        "kdf",
+        "nist_algs",
+        "pkcs1",
+        "pkcs12",
+        "pkcs7",
+        "pkcs9",
+        "registry",
+        "x509",
+        "x962",
+    ],
+    version = "0.7.1",
 )
 
 http_archive(
@@ -7671,13 +7732,53 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_MINOR": "0",
         "CARGO_PKG_VERSION_PATCH": "106",
         "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :proc-macro2-1-build-script-run[out_dir])",
+    },
+    features = [
+        "default",
+        "proc-macro",
+    ],
+    rustc_flags = ["@$(location :proc-macro2-1-build-script-run[rustc_flags])"],
+    visibility = [],
+    deps = [":unicode-ident-1"],
+)
+
+cargo.rust_binary(
+    name = "proc-macro2-1-build-script-build",
+    srcs = [":proc-macro2-1.0.106.crate"],
+    crate = "build_script_build",
+    crate_root = "proc-macro2-1.0.106.crate/build.rs",
+    edition = "2021",
+    env = {
+        "CARGO_PKG_NAME": "proc-macro2",
+        "CARGO_PKG_VERSION": "1.0.106",
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "106",
+        "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
         "default",
         "proc-macro",
     ],
     visibility = [],
-    deps = [":unicode-ident-1"],
+)
+
+buildscript_run(
+    name = "proc-macro2-1-build-script-run",
+    package_name = "proc-macro2",
+    buildscript_rule = ":proc-macro2-1-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "106",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "default",
+        "proc-macro",
+    ],
+    version = "1.0.106",
 )
 
 alias(
@@ -10168,6 +10269,35 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "signal-hook-registry-1.4.8.crate",
+    sha256 = "c4db69cba1110affc0e9f7bcd48bbf87b3f4fc7c61fc9155afd4c469eb3d6c1b",
+    strip_prefix = "signal-hook-registry-1.4.8",
+    urls = ["https://static.crates.io/crates/signal-hook-registry/1.4.8/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "signal-hook-registry-1",
+    srcs = [":signal-hook-registry-1.4.8.crate"],
+    crate = "signal_hook_registry",
+    crate_root = "signal-hook-registry-1.4.8.crate/src/lib.rs",
+    edition = "2015",
+    env = {
+        "CARGO_PKG_NAME": "signal-hook-registry",
+        "CARGO_PKG_VERSION": "1.4.8",
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "4",
+        "CARGO_PKG_VERSION_PATCH": "8",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+    deps = [
+        ":errno-0.3",
+        ":libc-0.2",
+    ],
+)
+
+http_archive(
     name = "signature-2.2.0.crate",
     sha256 = "77549399552de45a898a580c1b41d445bf730df867cc44e6c0233bbc4b8329de",
     strip_prefix = "signature-2.2.0",
@@ -11555,6 +11685,7 @@ cargo.rust_library(
     features = [
         "bytes",
         "default",
+        "fs",
         "io-util",
         "libc",
         "macros",
@@ -11562,6 +11693,8 @@ cargo.rust_library(
         "net",
         "rt",
         "rt-multi-thread",
+        "signal",
+        "signal-hook-registry",
         "socket2",
         "sync",
         "time",
@@ -11569,13 +11702,22 @@ cargo.rust_library(
     ],
     platform = {
         "linux-x86_64": dict(
-            deps = [":libc-0.2"],
+            deps = [
+                ":libc-0.2",
+                ":signal-hook-registry-1",
+            ],
         ),
         "macos-arm64": dict(
-            deps = [":libc-0.2"],
+            deps = [
+                ":libc-0.2",
+                ":signal-hook-registry-1",
+            ],
         ),
         "macos-x86_64": dict(
-            deps = [":libc-0.2"],
+            deps = [
+                ":libc-0.2",
+                ":signal-hook-registry-1",
+            ],
         ),
         "windows-x86_64": dict(
             features = ["windows-sys"],
@@ -11993,11 +12135,14 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
+        "_tls-any",
         "channel",
         "codegen",
         "default",
         "router",
         "server",
+        "tls-connect-info",
+        "tls-ring",
         "transport",
     ],
     visibility = [],
@@ -12018,6 +12163,7 @@ cargo.rust_library(
         ":socket2-0.6",
         ":sync_wrapper-1",
         ":tokio-1",
+        ":tokio-rustls-0.26",
         ":tokio-stream-0.1",
         ":tower-0.5",
         ":tower-layer-0.3",
