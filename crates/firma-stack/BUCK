@@ -1,3 +1,4 @@
+load("@prelude//:prelude.bzl", "native")
 load("@prelude//rust:cargo_package.bzl", "cargo")
 
 cargo.rust_library(
@@ -19,4 +20,29 @@ cargo.rust_library(
         "prelude//os/constraints:windows": ["//third-party:windows-sys"],
         "DEFAULT": ["//third-party:nix"],
     }),
+)
+
+native.rust_test(
+    name = "config_parse_test",
+    crate = "config_parse",
+    crate_root = "tests/config_parse.rs",
+    edition = "2024",
+    srcs = glob(["tests/**/*.rs"]),
+    deps = [
+        ":firma_stack",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "status_state_machine_test",
+    crate = "status_state_machine",
+    crate_root = "tests/status_state_machine.rs",
+    edition = "2024",
+    srcs = glob(["tests/**/*.rs"]),
+    deps = [
+        ":firma_stack",
+        "//third-party:tempfile",
+    ],
 )
