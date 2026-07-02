@@ -1,5 +1,5 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -22,6 +22,62 @@ rust_binary(
     edition = crate_edition(),
     proc_macro_deps = all_crate_deps(proc_macro = True),
     version = "0.1.2",
+)
+
+rust_test(
+    name = "cli_help_test",
+    srcs = ["tests/cli_help.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    data = [":firma"],
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True),
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+    rustc_env = {
+        "CARGO_BIN_EXE_firma": "$(rootpath :firma)",
+    },
+)
+
+rust_test(
+    name = "cli_parsing_test",
+    srcs = ["tests/cli_parsing.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    data = [":firma"],
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [
+        "//crates/firma-config-loader:firma_config_loader",
+    ],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+    rustc_env = {
+        "CARGO_BIN_EXE_firma": "$(rootpath :firma)",
+    },
+)
+
+rust_test(
+    name = "sidecar_status_cli_test",
+    srcs = ["tests/sidecar_status_cli.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    data = [":firma"],
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True),
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+    rustc_env = {
+        "CARGO_BIN_EXE_firma": "$(rootpath :firma)",
+    },
 )
 
 exports_files(["Cargo.toml"])
