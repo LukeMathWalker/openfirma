@@ -9,25 +9,31 @@ def system_demo_cxx_toolchain():
     system_cxx_toolchain(
         name = "cxx",
         compiler = select({
-            "prelude//os/constraints:linux": "gcc",
-            "prelude//os/constraints:macos": "clang",
+            "prelude//os/constraints:linux": "/usr/bin/gcc",
+            "prelude//os/constraints:macos": "/usr/bin/clang",
             "prelude//os/constraints:windows": "cl.exe",
-            "DEFAULT": "cc",
+            "DEFAULT": "/usr/bin/cc",
         }),
         # Keep `g++` as the C++ compiler on Linux so the prelude doesn't inject
         # `-fuse-ld=lld` (lld isn't guaranteed to exist). Other OSes use their
         # native compilers.
         cxx_compiler = select({
-            "prelude//os/constraints:linux": "g++",
-            "prelude//os/constraints:macos": "clang++",
+            "prelude//os/constraints:linux": "/usr/bin/g++",
+            "prelude//os/constraints:macos": "/usr/bin/clang++",
             "prelude//os/constraints:windows": "cl.exe",
-            "DEFAULT": "c++",
+            "DEFAULT": "/usr/bin/c++",
         }),
         linker = select({
-            "prelude//os/constraints:linux": "g++",
-            "prelude//os/constraints:macos": "clang++",
+            "prelude//os/constraints:linux": "/usr/bin/g++",
+            "prelude//os/constraints:macos": "/usr/bin/clang++",
             "prelude//os/constraints:windows": "link.exe",
-            "DEFAULT": "c++",
+            "DEFAULT": "/usr/bin/c++",
+        }),
+        archiver = select({
+            "prelude//os/constraints:linux": "/usr/bin/ar",
+            "prelude//os/constraints:macos": "/usr/bin/ar",
+            "prelude//os/constraints:windows": "lib.exe",
+            "DEFAULT": "/usr/bin/ar",
         }),
         # Buck prelude's system C++ toolchain injects `-fuse-ld=lld` into the
         # linker wrapper. Some environments don't ship `ld.lld`,

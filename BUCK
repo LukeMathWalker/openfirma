@@ -5,3 +5,105 @@ export_file(
     src = "Cargo.toml",
     visibility = ["PUBLIC"],
 )
+
+export_file(
+    name = "firma_e2e_main",
+    src = "tests/e2e/main.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_agent",
+    src = "tests/e2e/agent.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_audit",
+    src = "tests/e2e/audit.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_config",
+    src = "tests/e2e/config.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_policy",
+    src = "tests/e2e/policy.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_runner",
+    src = "tests/e2e/runner.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_scenario",
+    src = "tests/e2e/scenario.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_scenarios_mod",
+    src = "tests/e2e/scenarios/mod.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_setup",
+    src = "tests/e2e/setup.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_allow_http_call",
+    src = "tests/e2e/scenarios/allow_http_call.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_block_raw_tcp_egress",
+    src = "tests/e2e/scenarios/block_raw_tcp_egress.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_deny_forbidden_http_resource",
+    src = "tests/e2e/scenarios/deny_forbidden_http_resource.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_deny_http_call",
+    src = "tests/e2e/scenarios/deny_http_call.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_deny_unclassified_intent",
+    src = "tests/e2e/scenarios/deny_unclassified_intent.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_fs_delete_deny",
+    src = "tests/e2e/scenarios/fs_delete_deny.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_fs_read_deny",
+    src = "tests/e2e/scenarios/fs_read_deny.rs",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "firma_e2e_simple_prompt",
+    src = "tests/e2e/scenarios/simple_prompt.rs",
+    visibility = ["PUBLIC"],
+)

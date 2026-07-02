@@ -41,7 +41,13 @@ rust_test(
     crate = "firma_grpc_interceptor_proto",
     crate_root = "vendor/src/lib.rs",
     edition = "2024",
-    rustc_flags = ["@$(location :manifest[env_flags])"] + select({
+    env = {
+        "OUT_DIR": "$(location :build-script-run[out_dir])",
+    },
+    rustc_flags = [
+        "@$(location :build-script-run[rustc_flags])",
+        "@$(location :manifest[env_flags])",
+    ] + select({
         "prelude//os/constraints:windows": select({
             "prelude//abi/constraints:gnu": [
                 "@$(location //third-party/rust/crates/windows_x86_64_gnu/0.52.6:build-script-run[rustc_flags])",
