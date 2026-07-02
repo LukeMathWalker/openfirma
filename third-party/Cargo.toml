@@ -11,6 +11,7 @@ name = "_placeholder"
 path = "_placeholder.rs"
 
 [dependencies]
+ansi-to-tui = "8"
 anyhow = "1"
 arc-swap = "1"
 async-stream = "0.3"
@@ -18,8 +19,9 @@ async-trait = "0.1"
 base64 = "0.22"
 cedar-policy = "3"
 chrono = { version = "0.4", features = ["serde"] }
-clap = { version = "4", default-features = false, features = ["derive", "std", "help", "usage", "error-context"] }
+clap = { version = "4", default-features = false, features = ["color", "derive", "std", "help", "usage", "error-context", "suggestions"] }
 criterion = { version = "0.8", default-features = false, features = ["cargo_bench_support"] }
+crossterm = "0.28"
 ctrlc = "3.5"
 dialoguer = "0.11"
 ecdsa = { version = "0.16", features = ["signing", "verifying"] }
@@ -46,6 +48,7 @@ proptest = "1"
 prost = "0.14"
 prost-types = "0.14"
 rand = { version = "0.9", default-features = false, features = ["small_rng"] }
+ratatui = "0.30"
 rcgen = { version = "0.13", features = ["x509-parser"] }
 regex = "1"
 reqwest = { version = "0.13", default-features = false, features = ["charset", "http2", "query", "rustls-no-provider"] }
@@ -75,6 +78,7 @@ tonic-prost = "0.14"
 tonic-prost-build = "0.14"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tui-markdown = { version = "0.3.8", default-features = false }
 unicode-normalization = "0.1"
 uuid = { version = "1", features = ["v4", "v7", "serde"] }
 wait-timeout = "0.2"
