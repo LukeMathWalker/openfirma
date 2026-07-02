@@ -1,0 +1,17 @@
+load("@prelude//rust:cargo_package.bzl", "cargo")
+
+cargo.rust_library(
+    name = "firma_config_loader",
+    crate = "firma_config_loader",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third-party:anyhow",
+        "//third-party:fs-err",
+        "//third-party:serde",
+        "//third-party:thiserror",
+        "//third-party:toml",
+    ],
+)
