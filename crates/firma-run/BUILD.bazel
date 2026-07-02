@@ -1,0 +1,29 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "firma_run",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    compile_data = glob([
+        "seccomp/**",
+        "src/resources/**",
+        "src/backend/fixtures/**",
+    ]),
+    crate_name = "firma_run",
+    crate_root = "src/lib.rs",
+    deps = all_crate_deps(normal = True) + [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-protobuf:firma_protobuf",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+    ],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+)
+
+exports_files(["Cargo.toml"])
