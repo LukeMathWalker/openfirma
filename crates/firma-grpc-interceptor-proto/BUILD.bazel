@@ -1,0 +1,34 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
+load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+PROTO_SRCS = glob(["proto/**/*.proto"])
+
+cargo_build_script(
+    name = "build_script",
+    srcs = ["build.rs"],
+    aliases = aliases(
+        build = True,
+        build_proc_macro = True,
+    ),
+    data = PROTO_SRCS,
+    deps = all_crate_deps(build = True),
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(build_proc_macro = True),
+    use_default_shell_env = True,
+)
+
+rust_library(
+    name = "firma_grpc_interceptor_proto",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    crate_name = "firma_grpc_interceptor_proto",
+    crate_root = "src/lib.rs",
+    deps = all_crate_deps(normal = True) + [":build_script"],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+)
+
+exports_files(["Cargo.toml"] + PROTO_SRCS)
