@@ -69,6 +69,15 @@ cd openfirma
 cargo install --path crates/firma --locked
 ```
 
+The repository is migrating to Bazel while keeping Cargo metadata and
+Cargo-native tooling compatible. For development, `just check` remains the
+Cargo-backed CI-parity command. To exercise the Bazel graph that has been
+ported so far, run:
+
+```bash
+just bazel-check
+```
+
 ### Quickstart
 
 `firma` ships as a single precompiled static binary, no build toolchain or API keys required to get started.

@@ -35,6 +35,14 @@ test:
 build:
   cargo build --all-features --all-targets
 
+bazel-build:
+  bazel build //crates/...
+
+bazel-test:
+  bazel test //crates/...
+
+bazel-check: bazel-build bazel-test
+
 e2e:
   cargo nextest run -p firma --test e2e --run-ignored all
 
