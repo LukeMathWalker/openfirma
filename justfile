@@ -33,7 +33,22 @@ test:
   cargo test --all-features --doc
 
 build:
-  cargo build --all-features --all-targets
+  buck2 build --target-platforms //platforms:aarch64-apple-darwin \
+    //crates/firma-core:firma_core \
+    //crates/firma-runtime-state:firma_runtime_state \
+    //crates/firma-config-loader:firma_config_loader \
+    //crates/firma-stack:firma_stack \
+    //crates/firma-demo-fixture:firma_demo_fixture_lib \
+    //crates/firma-demo-fixture:firma-demo-fixture \
+    //crates/firma-demo-fixture:firma-demo-fixture-client \
+    //crates/firma-protobuf:firma_protobuf \
+    //crates/firma-grpc-interceptor-proto:firma_grpc_interceptor_proto \
+    //crates/firma-authority:firma_authority \
+    //crates/firma-sidecar:firma_sidecar \
+    //crates/firma-run:firma_run \
+    //crates/firma-demo-tui:firma-demo-tui \
+    //crates/firma-vz-runner:firma-vz-runner \
+    //crates/firma:firma
 
 e2e:
   cargo nextest run -p firma --test e2e --run-ignored all
