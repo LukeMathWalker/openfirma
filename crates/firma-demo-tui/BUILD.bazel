@@ -1,0 +1,21 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_binary(
+    name = "firma-demo-tui",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    crate_name = "firma_demo_tui",
+    crate_root = "src/main.rs",
+    deps = all_crate_deps(normal = True) + [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-stack:firma_stack",
+    ],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+)
+
+exports_files(["Cargo.toml"])

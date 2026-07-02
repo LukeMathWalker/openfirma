@@ -1,5 +1,5 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -10,6 +10,26 @@ rust_library(
     crate_name = "firma_demo_fixture",
     crate_root = "src/lib.rs",
     deps = all_crate_deps(normal = True),
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+)
+
+rust_binary(
+    name = "firma-demo-fixture",
+    srcs = ["src/bin/server.rs"],
+    aliases = aliases(),
+    crate_name = "firma_demo_fixture_server",
+    deps = all_crate_deps(normal = True) + [":firma_demo_fixture"],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+)
+
+rust_binary(
+    name = "firma-demo-fixture-client",
+    srcs = ["src/bin/client.rs"],
+    aliases = aliases(),
+    crate_name = "firma_demo_fixture_client",
+    deps = all_crate_deps(normal = True) + [":firma_demo_fixture"],
     edition = crate_edition(),
     proc_macro_deps = all_crate_deps(proc_macro = True),
 )

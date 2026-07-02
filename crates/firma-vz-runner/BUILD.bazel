@@ -1,0 +1,19 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_binary(
+    name = "firma-vz-runner",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    compile_data = glob(["src/contract/fixtures/**"]),
+    crate_name = "firma_vz_runner",
+    crate_root = "src/main.rs",
+    deps = all_crate_deps(normal = True),
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True),
+    version = "0.1.2",
+)
+
+exports_files(["Cargo.toml"])
