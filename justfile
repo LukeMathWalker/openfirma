@@ -41,7 +41,10 @@ bazel-build:
 bazel-test:
   bazel test //...
 
-bazel-check: bazel-build bazel-test
+bazel-lint:
+  bazel build //... --aspects=@rules_rust//rust:defs.bzl%rust_clippy_aspect --output_groups=clippy_checks --@rules_rust//rust/settings:clippy_flags=-Dwarnings
+
+bazel-check: bazel-build bazel-test bazel-lint
 
 e2e:
   cargo nextest run -p firma --test e2e --run-ignored all
