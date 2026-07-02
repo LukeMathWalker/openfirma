@@ -1,6 +1,6 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
 load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
-load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_doc_test", "rust_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -29,6 +29,11 @@ rust_library(
     deps = all_crate_deps(normal = True) + [":build_script"],
     edition = crate_edition(),
     proc_macro_deps = all_crate_deps(proc_macro = True),
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":firma_grpc_interceptor_proto",
 )
 
 exports_files(["Cargo.toml"] + PROTO_SRCS)
