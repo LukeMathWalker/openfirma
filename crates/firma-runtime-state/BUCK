@@ -1,4 +1,17 @@
+load("@prelude//:prelude.bzl", "native")
 load("@prelude//rust:cargo_package.bzl", "cargo")
+
+TEST_ENV = {
+    "CARGO_MANIFEST_DIR": "crates/firma-runtime-state",
+}
+
+TEST_DEPS = [
+    ":firma_runtime_state",
+    "//third-party:insta",
+    "//third-party:nix",
+    "//third-party:tempfile",
+    "//third-party:toml",
+]
 
 cargo.rust_library(
     name = "firma_runtime_state",
@@ -17,4 +30,54 @@ cargo.rust_library(
         "prelude//os/constraints:windows": ["//third-party:windows-sys"],
         "DEFAULT": ["//third-party:nix"],
     }),
+)
+
+native.rust_test(
+    name = "process_id_test",
+    crate = "process_id",
+    crate_root = "tests/process_id.rs",
+    edition = "2024",
+    env = TEST_ENV,
+    srcs = glob(["tests/**/*.rs"]),
+    deps = TEST_DEPS,
+)
+
+native.rust_test(
+    name = "pidfile_roundtrip_test",
+    crate = "pidfile_roundtrip",
+    crate_root = "tests/pidfile_roundtrip.rs",
+    edition = "2024",
+    env = TEST_ENV,
+    srcs = glob(["tests/**/*.rs"]),
+    deps = TEST_DEPS,
+)
+
+native.rust_test(
+    name = "runtime_paths_test",
+    crate = "runtime_paths",
+    crate_root = "tests/runtime_paths.rs",
+    edition = "2024",
+    env = TEST_ENV,
+    srcs = glob(["tests/**/*.rs"]),
+    deps = TEST_DEPS,
+)
+
+native.rust_test(
+    name = "sidecar_markers_test",
+    crate = "sidecar_markers",
+    crate_root = "tests/sidecar_markers.rs",
+    edition = "2024",
+    env = TEST_ENV,
+    srcs = glob(["tests/**/*.rs"]),
+    deps = TEST_DEPS,
+)
+
+native.rust_test(
+    name = "state_dir_resolution_test",
+    crate = "state_dir_resolution",
+    crate_root = "tests/state_dir_resolution.rs",
+    edition = "2024",
+    env = TEST_ENV,
+    srcs = glob(["tests/**/*.rs"]),
+    deps = TEST_DEPS,
 )
