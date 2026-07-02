@@ -1,5 +1,5 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test", "rust_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_doc", "rust_doc_test", "rust_library", "rust_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -43,6 +43,105 @@ rust_doc_test(
 rust_doc(
     name = "docs",
     crate = ":firma_sidecar",
+)
+
+_BENCH_DEPS = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [
+    ":firma_sidecar",
+    "//crates/firma-core:firma_core",
+]
+
+_BENCH_FIXTURES = glob(["benches/fixtures/*"])
+
+rust_binary(
+    name = "revocation_bench",
+    srcs = ["benches/revocation.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "revocation_bench",
+    crate_root = "benches/revocation.rs",
+    deps = _BENCH_DEPS,
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
+rust_binary(
+    name = "cedar_eval_bench",
+    srcs = [
+        "benches/cedar_eval.rs",
+        "benches/support/common_fixtures.rs",
+    ],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    compile_data = _BENCH_FIXTURES,
+    crate_name = "cedar_eval_bench",
+    crate_root = "benches/cedar_eval.rs",
+    deps = _BENCH_DEPS,
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
+rust_binary(
+    name = "bundle_reload_bench",
+    srcs = [
+        "benches/bundle_reload.rs",
+        "benches/support/common_fixtures.rs",
+    ],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    compile_data = _BENCH_FIXTURES,
+    crate_name = "bundle_reload_bench",
+    crate_root = "benches/bundle_reload.rs",
+    deps = _BENCH_DEPS,
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
+rust_binary(
+    name = "stage1_bench",
+    srcs = ["benches/stage1.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "stage1_bench",
+    crate_root = "benches/stage1.rs",
+    deps = _BENCH_DEPS,
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
+rust_binary(
+    name = "pipeline_bench",
+    srcs = [
+        "benches/pipeline.rs",
+        "benches/support/common_fixtures.rs",
+    ],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    compile_data = _BENCH_FIXTURES,
+    crate_name = "pipeline_bench",
+    crate_root = "benches/pipeline.rs",
+    deps = _BENCH_DEPS,
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
 )
 
 exports_files(["Cargo.toml"])

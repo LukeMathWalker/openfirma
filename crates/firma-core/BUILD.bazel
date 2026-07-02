@@ -1,5 +1,5 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test", "rust_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_doc", "rust_doc_test", "rust_library", "rust_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -35,6 +35,24 @@ rust_doc_test(
 rust_doc(
     name = "docs",
     crate = ":firma_core",
+)
+
+rust_binary(
+    name = "paseto_bench",
+    srcs = ["benches/paseto.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "paseto_bench",
+    crate_root = "benches/paseto.rs",
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [
+        ":firma_core",
+    ],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
 )
 
 exports_files(["Cargo.toml"])
