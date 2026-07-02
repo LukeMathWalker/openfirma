@@ -26,4 +26,79 @@ rust_test(
     deps = all_crate_deps(normal_dev = True),
 )
 
+rust_test(
+    name = "runtime_paths_integration_test",
+    srcs = ["tests/runtime_paths.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "runtime_paths_integration_test",
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
+rust_test(
+    name = "sidecar_markers_integration_test",
+    srcs = ["tests/sidecar_markers.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "sidecar_markers_integration_test",
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
+rust_test(
+    name = "process_id_integration_test",
+    srcs = ["tests/process_id.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "process_id_integration_test",
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
+rust_test(
+    name = "state_dir_resolution_integration_test",
+    srcs = ["tests/state_dir_resolution.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "state_dir_resolution_integration_test",
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
+rust_test(
+    name = "pidfile_roundtrip_integration_test",
+    srcs = ["tests/pidfile_roundtrip.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "pidfile_roundtrip_integration_test",
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
 exports_files(["Cargo.toml"])

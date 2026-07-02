@@ -49,7 +49,12 @@ use std::time::Duration;
 use wait_timeout::ChildExt;
 
 fn firma_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    let path = PathBuf::from(env!("CARGO_BIN_EXE_firma"));
+    if path.is_absolute() {
+        path
+    } else {
+        std::env::current_dir().expect("test cwd").join(path)
+    }
 }
 
 /// Captured outcome of one governed `firma run`.

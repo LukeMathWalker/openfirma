@@ -1,5 +1,6 @@
+load("//bazel:rust_tests.bzl", "cargo_integration_test")
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -24,6 +25,102 @@ rust_library(
     ],
     edition = crate_edition(),
     proc_macro_deps = all_crate_deps(proc_macro = True),
+)
+
+rust_test(
+    name = "unit_tests",
+    aliases = aliases(
+        normal_dev = True,
+        proc_macro_dev = True,
+    ),
+    crate = ":firma_run",
+    deps = all_crate_deps(normal_dev = True),
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro_dev = True),
+)
+
+cargo_integration_test(
+    name = "authority_autostart_eaddrinuse_integration_test",
+    src = "tests/authority_autostart_eaddrinuse.rs",
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+    ],
+)
+
+cargo_integration_test(
+    name = "authority_autostart_kill_on_drop_integration_test",
+    src = "tests/authority_autostart_kill_on_drop.rs",
+    deps = [":firma_run"],
+)
+
+cargo_integration_test(
+    name = "authority_autostart_marker_integration_test",
+    src = "tests/authority_autostart_marker.rs",
+    deps = [":firma_run"],
+)
+
+cargo_integration_test(
+    name = "authority_autostart_ready_scrape_integration_test",
+    src = "tests/authority_autostart_ready_scrape.rs",
+    deps = [":firma_run"],
+)
+
+cargo_integration_test(
+    name = "authority_autostart_reuse_integration_test",
+    src = "tests/authority_autostart_reuse.rs",
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+    ],
+)
+
+cargo_integration_test(
+    name = "authority_autostart_timeout_integration_test",
+    src = "tests/authority_autostart_timeout.rs",
+    deps = [":firma_run"],
+)
+
+cargo_integration_test(
+    name = "authority_bootstrap_prompt_integration_test",
+    src = "tests/authority_bootstrap_prompt.rs",
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+    ],
+)
+
+cargo_integration_test(
+    name = "sidecar_autostart_env_sandbox_id_integration_test",
+    src = "tests/sidecar_autostart_env_sandbox_id.rs",
+    deps = [":firma_run"],
+)
+
+cargo_integration_test(
+    name = "sidecar_autostart_kill_on_drop_integration_test",
+    src = "tests/sidecar_autostart_kill_on_drop.rs",
+    deps = [":firma_run"],
+)
+
+cargo_integration_test(
+    name = "sidecar_autostart_ready_scrape_integration_test",
+    src = "tests/sidecar_autostart_ready_scrape.rs",
+    deps = [":firma_run"],
+)
+
+cargo_integration_test(
+    name = "sidecar_autostart_timeout_integration_test",
+    src = "tests/sidecar_autostart_timeout.rs",
+    deps = [":firma_run"],
+)
+
+cargo_integration_test(
+    name = "sidecar_config_merge_integration_test",
+    src = "tests/sidecar_config_merge.rs",
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+    ],
 )
 
 exports_files(["Cargo.toml"])

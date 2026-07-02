@@ -47,7 +47,12 @@ use firma_sidecar::startup::{build_token_verifier, load_capability_map};
 const READY_TIMEOUT: Duration = Duration::from_secs(15);
 
 fn firma_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    let path = PathBuf::from(env!("CARGO_BIN_EXE_firma"));
+    if path.is_absolute() {
+        path
+    } else {
+        std::env::current_dir().expect("test cwd").join(path)
+    }
 }
 
 /// Bind, capture, and immediately release a loopback port so callers can hand

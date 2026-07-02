@@ -30,4 +30,24 @@ rust_test(
     deps = all_crate_deps(normal_dev = True),
 )
 
+rust_test(
+    name = "integration_tests",
+    srcs = glob(["tests/integration/**/*.rs"]),
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    args = ["--test-threads=1"],
+    crate_name = "firma_config_loader_integration_tests",
+    crate_root = "tests/integration/main.rs",
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_config_loader"],
+    edition = crate_edition(),
+    env = {
+        "NEXTEST": "1",
+    },
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
 exports_files(["Cargo.toml"])

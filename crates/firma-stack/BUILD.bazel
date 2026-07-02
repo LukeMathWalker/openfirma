@@ -29,4 +29,37 @@ rust_test(
     deps = all_crate_deps(normal_dev = True),
 )
 
+rust_test(
+    name = "config_parse_integration_test",
+    srcs = ["tests/config_parse.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "config_parse_integration_test",
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [
+        ":firma_stack",
+        "//crates/firma-config-loader:firma_config_loader",
+    ],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
+rust_test(
+    name = "status_state_machine_integration_test",
+    srcs = ["tests/status_state_machine.rs"],
+    aliases = aliases(
+        normal = True,
+        normal_dev = True,
+        proc_macro = True,
+        proc_macro_dev = True,
+    ),
+    crate_name = "status_state_machine_integration_test",
+    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_stack"],
+    edition = crate_edition(),
+    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+)
+
 exports_files(["Cargo.toml"])

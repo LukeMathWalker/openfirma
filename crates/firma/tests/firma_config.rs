@@ -14,13 +14,22 @@
     reason = "test code: panics are acceptable test failures"
 )]
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use firma_config_loader::CONFIG_FILE_NAME;
 
+fn firma_bin() -> PathBuf {
+    let path = PathBuf::from(env!("CARGO_BIN_EXE_firma"));
+    if path.is_absolute() {
+        path
+    } else {
+        std::env::current_dir().expect("test cwd").join(path)
+    }
+}
+
 fn firma() -> Command {
-    Command::new(env!("CARGO_BIN_EXE_firma"))
+    Command::new(firma_bin())
 }
 
 fn run_init(config_dir: &Path, state_dir: &Path) {
