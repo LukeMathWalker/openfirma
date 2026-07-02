@@ -2208,6 +2208,7 @@ dependencies = [
  "tonic-prost-build",
  "tracing",
  "tracing-subscriber",
+ "unicode-normalization",
  "uuid",
  "wait-timeout",
  "webpki-roots",

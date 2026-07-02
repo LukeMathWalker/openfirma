@@ -9327,9 +9327,41 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_MINOR": "0",
         "CARGO_PKG_VERSION_PATCH": "22",
         "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :rustversion-1-build-script-run[out_dir])",
     },
     proc_macro = True,
+    rustc_flags = ["@$(location :rustversion-1-build-script-run[rustc_flags])"],
     visibility = [],
+)
+
+cargo.rust_binary(
+    name = "rustversion-1-build-script-build",
+    srcs = [":rustversion-1.0.22.crate"],
+    crate = "build_script_build",
+    crate_root = "rustversion-1.0.22.crate/build/build.rs",
+    edition = "2018",
+    env = {
+        "CARGO_PKG_NAME": "rustversion",
+        "CARGO_PKG_VERSION": "1.0.22",
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "22",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    visibility = [],
+)
+
+buildscript_run(
+    name = "rustversion-1-build-script-run",
+    package_name = "rustversion",
+    buildscript_rule = ":rustversion-1-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "0",
+        "CARGO_PKG_VERSION_PATCH": "22",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    version = "1.0.22",
 )
 
 http_archive(
@@ -12887,6 +12919,12 @@ cargo.rust_library(
     visibility = [],
 )
 
+alias(
+    name = "unicode-normalization",
+    actual = ":unicode-normalization-0.1",
+    visibility = ["PUBLIC"],
+)
+
 http_archive(
     name = "unicode-normalization-0.1.25.crate",
     sha256 = "5fd4f6878c9cb28d874b009da9e8d183b5abc80117c40bbd187a1fde336be6e8",
@@ -12909,6 +12947,10 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "25",
         "CARGO_PKG_VERSION_PRE": "",
     },
+    features = [
+        "default",
+        "std",
+    ],
     visibility = [],
     deps = [":tinyvec-1"],
 )
