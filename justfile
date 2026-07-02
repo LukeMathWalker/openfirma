@@ -24,7 +24,44 @@ fmt:
   dprint check
 
 lint:
-  cargo clippy --all-features --all-targets -- -D warnings
+  targets=( \
+    '//crates/firma-core:firma_core[clippy.txt]' \
+    '//crates/firma-runtime-state:firma_runtime_state[clippy.txt]' \
+    '//crates/firma-config-loader:firma_config_loader[clippy.txt]' \
+    '//crates/firma-config-loader:firma_config_loader_clap[clippy.txt]' \
+    '//crates/firma-stack:firma_stack[clippy.txt]' \
+    '//crates/firma-demo-fixture:firma_demo_fixture_lib[clippy.txt]' \
+    '//crates/firma-demo-fixture:firma-demo-fixture[clippy.txt]' \
+    '//crates/firma-demo-fixture:firma-demo-fixture-client[clippy.txt]' \
+    '//crates/firma-protobuf:firma_protobuf[clippy.txt]' \
+    '//crates/firma-protobuf:firma-protobuf-build-script-build[clippy.txt]' \
+    '//crates/firma-grpc-interceptor-proto:firma_grpc_interceptor_proto[clippy.txt]' \
+    '//crates/firma-grpc-interceptor-proto:firma-grpc-interceptor-proto-build-script-build[clippy.txt]' \
+    '//crates/firma-authority:firma_authority[clippy.txt]' \
+    '//crates/firma-sidecar:firma_sidecar[clippy.txt]' \
+    '//crates/firma-run:firma_run[clippy.txt]' \
+    '//crates/firma-demo-tui:firma-demo-tui[clippy.txt]' \
+    '//crates/firma-vz-runner:firma-vz-runner[clippy.txt]' \
+    '//crates/firma:firma[clippy.txt]' \
+  ); \
+  outputs=(); \
+  while read -r target output; do \
+    [[ "$target" == root//* ]] || continue; \
+    outputs+=("$output"); \
+  done < <(buck2 build --show-output --target-platforms //platforms:aarch64-apple-darwin "${targets[@]}"); \
+  failed=0; \
+  for output in "${outputs[@]}"; do \
+    if [[ -s "$output" ]]; then \
+      printf '\n%s\n' "$output"; \
+      printf '%0.s-' {1..80}; \
+      printf '\n'; \
+      cat "$output"; \
+      failed=1; \
+    fi; \
+  done; \
+  if [[ "$failed" -ne 0 ]]; then \
+    exit 1; \
+  fi
 
 test:
   cargo nextest run --all-features --all-targets --no-fail-fast
