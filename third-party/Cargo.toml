@@ -39,7 +39,7 @@ lru = "0.17"
 miette = { version = "7", features = ["fancy-no-backtrace"] }
 nix = { version = "0.31", features = ["fs", "process", "signal", "socket", "user"] }
 notify = "8"
-objc2-virtualization = { version = "0.3.2", default-features = false }
+objc2-virtualization = { version = "0.3.2", default-features = false, features = ["VZBootLoader", "VZLinuxBootLoader", "std"] }
 owo-colors = { version = "4", features = ["supports-colors"] }
 p256 = { version = "0.13", features = ["ecdsa", "pem"] }
 pasetors = "0.7"

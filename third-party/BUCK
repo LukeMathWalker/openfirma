@@ -7486,9 +7486,18 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "2",
         "CARGO_PKG_VERSION_PRE": "",
     },
-    features = ["alloc"],
+    features = [
+        "NSObject",
+        "NSString",
+        "NSURL",
+        "alloc",
+        "bitflags",
+    ],
     visibility = [],
-    deps = [":objc2-0.6"],
+    deps = [
+        ":bitflags-2",
+        ":objc2-0.6",
+    ],
 )
 
 alias(
@@ -7519,6 +7528,12 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "2",
         "CARGO_PKG_VERSION_PRE": "",
     },
+    features = [
+        "VZBootLoader",
+        "VZLinuxBootLoader",
+        "alloc",
+        "std",
+    ],
     visibility = [],
     deps = [
         ":objc2-0.6",
