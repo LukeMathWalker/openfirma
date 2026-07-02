@@ -1,0 +1,23 @@
+buildscript.run = false
+
+[['cfg(all(target_arch = "aarch64", target_os = "macos"))'.cxx_library]]
+name = "ring-c-asm-macos-arm64"
+srcs = [
+  "crypto/curve25519/curve25519.c",
+  "crypto/fipsmodule/aes/aes_nohw.c",
+  "crypto/fipsmodule/bn/montgomery.c",
+  "crypto/fipsmodule/bn/montgomery_inv.c",
+  "crypto/fipsmodule/ec/ecp_nistz.c",
+  "crypto/fipsmodule/ec/gfp_p256.c",
+  "crypto/fipsmodule/ec/gfp_p384.c",
+  "crypto/fipsmodule/ec/p256.c",
+  "crypto/fipsmodule/ec/p256-nistz.c",
+  "crypto/limbs/limbs.c",
+  "crypto/mem.c",
+  "crypto/poly1305/poly1305.c",
+  "pregenerated/*armv8*-ios64.S",
+  "pregenerated/*armx*-ios64.S",
+]
+headers = ["include/**/*.h", "crypto/**/*.h", "third_party/**/*.h", "crypto/**/*.inl"]
+include_paths = ["include", "pregenerated"]
+compiler_flags = ["-Wno-error", "-arch", "arm64"]

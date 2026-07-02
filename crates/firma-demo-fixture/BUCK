@@ -1,0 +1,60 @@
+load("@prelude//rust:cargo_package.bzl", "cargo")
+
+COMMON_DEPS = [
+    ":firma_demo_fixture_lib",
+    "//third-party:anyhow",
+    "//third-party:clap",
+    "//third-party:http-body-util",
+    "//third-party:hyper",
+    "//third-party:hyper-util",
+    "//third-party:reqwest",
+    "//third-party:rustls",
+    "//third-party:rustls-platform-verifier",
+    "//third-party:serde",
+    "//third-party:serde_json",
+    "//third-party:tokio",
+    "//third-party:tracing",
+    "//third-party:tracing-subscriber",
+]
+
+cargo.rust_library(
+    name = "firma_demo_fixture_lib",
+    crate = "firma_demo_fixture",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third-party:anyhow",
+        "//third-party:clap",
+        "//third-party:http-body-util",
+        "//third-party:hyper",
+        "//third-party:hyper-util",
+        "//third-party:reqwest",
+        "//third-party:rustls",
+        "//third-party:rustls-platform-verifier",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:tokio",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+    ],
+)
+
+cargo.rust_binary(
+    name = "firma-demo-fixture",
+    crate = "firma_demo_fixture",
+    crate_root = "src/bin/server.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    deps = COMMON_DEPS,
+)
+
+cargo.rust_binary(
+    name = "firma-demo-fixture-client",
+    crate = "firma_demo_fixture_client",
+    crate_root = "src/bin/client.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    deps = COMMON_DEPS,
+)

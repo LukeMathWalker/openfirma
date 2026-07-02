@@ -27,8 +27,17 @@ def system_demo_cxx_toolchain():
             "prelude//os/constraints:windows": "lib.exe",
             "DEFAULT": "/usr/bin/ar",
         }),
+        c_flags = select({
+            "prelude//cpu/constraints:arm64": ["-arch", "arm64"],
+            "DEFAULT": [],
+        }),
+        cxx_flags = select({
+            "prelude//cpu/constraints:arm64": ["-arch", "arm64"],
+            "DEFAULT": [],
+        }),
         link_flags = select({
             "prelude//os/constraints:linux": ["-fuse-ld=bfd"],
+            "prelude//cpu/constraints:arm64": ["-arch", "arm64"],
             "DEFAULT": [],
         }),
         visibility = ["PUBLIC"],
