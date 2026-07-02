@@ -5,6 +5,8 @@ use std::thread::{self, JoinHandle};
 
 use crate::error::RunError;
 
+const HOST_DNS_STUB_BIND_ATTEMPTS: usize = 16;
+
 // ---------------------------------------------------------------------------
 // Host-side DNS stub handle.
 // ---------------------------------------------------------------------------
@@ -39,18 +41,7 @@ impl HostDnsStubHandle {
     /// Returns [`RunError::Spawn`] if the listeners cannot be bound or threads
     /// cannot be spawned.
     pub fn start() -> Result<Self, RunError> {
-        let udp = UdpSocket::bind("127.0.0.1:0").map_err(|error| {
-            RunError::Spawn(format!("failed to bind host DNS stub UDP: {error}"))
-        })?;
-        let listen_addr = udp.local_addr().map_err(|error| {
-            RunError::Spawn(format!("failed to read host DNS stub listen addr: {error}"))
-        })?;
-
-        let tcp = TcpListener::bind(listen_addr).map_err(|error| {
-            RunError::Spawn(format!(
-                "failed to bind host DNS stub TCP on {listen_addr}: {error}"
-            ))
-        })?;
+        let (udp, tcp, listen_addr) = bind_host_dns_stub_sockets()?;
 
         udp.set_nonblocking(true).map_err(|error| {
             RunError::Spawn(format!("failed to set DNS stub UDP non-blocking: {error}"))
@@ -95,6 +86,38 @@ impl HostDnsStubHandle {
     pub fn listen_addr(&self) -> SocketAddr {
         self.listen_addr
     }
+}
+
+fn bind_host_dns_stub_sockets() -> Result<(UdpSocket, TcpListener, SocketAddr), RunError> {
+    let mut last_addr_in_use = None;
+
+    for _ in 0..HOST_DNS_STUB_BIND_ATTEMPTS {
+        let udp = UdpSocket::bind("127.0.0.1:0").map_err(|error| {
+            RunError::Spawn(format!("failed to bind host DNS stub UDP: {error}"))
+        })?;
+        let listen_addr = udp.local_addr().map_err(|error| {
+            RunError::Spawn(format!("failed to read host DNS stub listen addr: {error}"))
+        })?;
+
+        match TcpListener::bind(listen_addr) {
+            Ok(tcp) => return Ok((udp, tcp, listen_addr)),
+            Err(error) if error.kind() == io::ErrorKind::AddrInUse => {
+                last_addr_in_use = Some(format!(
+                    "failed to bind host DNS stub TCP on {listen_addr}: {error}"
+                ));
+            }
+            Err(error) => {
+                return Err(RunError::Spawn(format!(
+                    "failed to bind host DNS stub TCP on {listen_addr}: {error}"
+                )));
+            }
+        }
+    }
+
+    Err(RunError::Spawn(format!(
+        "failed to bind host DNS stub UDP/TCP pair after {HOST_DNS_STUB_BIND_ATTEMPTS} attempts: {}",
+        last_addr_in_use.unwrap_or_else(|| "no bind attempt completed".to_string())
+    )))
 }
 
 impl Drop for HostDnsStubHandle {
