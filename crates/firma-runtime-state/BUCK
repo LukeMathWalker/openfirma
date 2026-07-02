@@ -1,0 +1,20 @@
+load("@prelude//rust:cargo_package.bzl", "cargo")
+
+cargo.rust_library(
+    name = "firma_runtime_state",
+    crate = "firma_runtime_state",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third-party:insta",
+        "//third-party:serde",
+        "//third-party:thiserror",
+        "//third-party:toml",
+        "//third-party:tracing",
+    ] + select({
+        "prelude//os/constraints:windows": ["//third-party:windows-sys"],
+        "DEFAULT": ["//third-party:nix"],
+    }),
+)

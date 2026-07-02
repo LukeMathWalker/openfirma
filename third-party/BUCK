@@ -1085,6 +1085,28 @@ cargo.rust_library(
     visibility = [],
 )
 
+http_archive(
+    name = "cfg_aliases-0.2.1.crate",
+    sha256 = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724",
+    strip_prefix = "cfg_aliases-0.2.1",
+    urls = ["https://static.crates.io/crates/cfg_aliases/0.2.1/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "cfg_aliases-0.2",
+    srcs = [":cfg_aliases-0.2.1.crate"],
+    crate = "cfg_aliases",
+    crate_root = "cfg_aliases-0.2.1.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_PKG_NAME": "cfg_aliases",
+        "CARGO_PKG_VERSION": "0.2.1",
+        "CARGO_PKG_VERSION_PATCH": "1",
+    },
+    visibility = [],
+)
+
 alias(
     name = "chrono",
     actual = ":chrono-0.4",
@@ -4509,9 +4531,7 @@ cargo.rust_library(
     crate_root = "insta-1.48.0.crate/src/lib.rs",
     edition = "2021",
     env = {
-        "CARGO_PKG_NAME": "insta",
-        "CARGO_PKG_VERSION": "1.48.0",
-        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_MANIFEST_DIR": "insta-1.48.0.crate",
     },
     features = [
         "colors",
@@ -5347,6 +5367,38 @@ cargo.rust_library(
         "CARGO_PKG_NAME": "nix",
         "CARGO_PKG_VERSION": "0.31.3",
         "CARGO_PKG_VERSION_PATCH": "3",
+        "OUT_DIR": "$(location :nix-0.31-build-script-run[out_dir])",
+    },
+    features = [
+        "default",
+        "feature",
+        "fs",
+        "memoffset",
+        "process",
+        "signal",
+        "socket",
+        "user",
+    ],
+    rustc_flags = ["@$(location :nix-0.31-build-script-run[rustc_flags])"],
+    visibility = [],
+    deps = [
+        ":bitflags-2",
+        ":cfg-if-1",
+        ":libc-0.2",
+        ":memoffset-0.9",
+    ],
+)
+
+cargo.rust_binary(
+    name = "nix-0.31-build-script-build",
+    srcs = [":nix-0.31.3.crate"],
+    crate = "build_script_build",
+    crate_root = "nix-0.31.3.crate/build.rs",
+    edition = "2021",
+    env = {
+        "CARGO_PKG_NAME": "nix",
+        "CARGO_PKG_VERSION": "0.31.3",
+        "CARGO_PKG_VERSION_PATCH": "3",
     },
     features = [
         "default",
@@ -5359,12 +5411,27 @@ cargo.rust_library(
         "user",
     ],
     visibility = [],
-    deps = [
-        ":bitflags-2",
-        ":cfg-if-1",
-        ":libc-0.2",
-        ":memoffset-0.9",
+    deps = [":cfg_aliases-0.2"],
+)
+
+buildscript_run(
+    name = "nix-0.31-build-script-run",
+    package_name = "nix",
+    buildscript_rule = ":nix-0.31-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_PATCH": "3",
+    },
+    features = [
+        "default",
+        "feature",
+        "fs",
+        "memoffset",
+        "process",
+        "signal",
+        "socket",
+        "user",
     ],
+    version = "0.31.3",
 )
 
 http_archive(
