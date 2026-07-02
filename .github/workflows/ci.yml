@@ -30,6 +30,46 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: cargo audit --deny warnings
 
+  bazel-audit:
+    name: Bazel Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        with:
+          rustflags: ""
+
+      - name: Load tool versions
+        shell: bash
+        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+      - name: Install Bazelisk
+        run: |
+          npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
+          bazel version
+
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install audit tools
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          command -v just || cargo binstall -y --force --locked just@$JUST_VERSION
+          command -v cargo-audit || cargo binstall -y --force --locked cargo-audit@$CARGO_AUDIT_VERSION
+        shell: bash
+
+      - name: Run Bazel audit
+        run: just bazel-audit
+
   zizmor:
     name: Actions Lint
     runs-on: ubuntu-latest
@@ -54,6 +94,46 @@ jobs:
       - uses: EmbarkStudios/cargo-deny-action@bb137d7af7e4fb67e5f82a49c4fce4fad40782fe # v2.0.20
         with:
           command: check licenses bans sources
+
+  bazel-deny:
+    name: Bazel Licenses & Bans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        with:
+          rustflags: ""
+
+      - name: Load tool versions
+        shell: bash
+        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+      - name: Install Bazelisk
+        run: |
+          npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
+          bazel version
+
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install deny tools
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          command -v just || cargo binstall -y --force --locked just@$JUST_VERSION
+          command -v cargo-deny || cargo binstall -y --force --locked cargo-deny@$CARGO_DENY_VERSION
+        shell: bash
+
+      - name: Run Bazel deny
+        run: just bazel-deny
 
   trufflehog:
     name: Secret Scan
@@ -194,6 +274,89 @@ jobs:
             exit 1
           fi
 
+  bazel-check:
+    name: Bazel Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        with:
+          rustflags: ""
+
+      - name: Load tool versions
+        shell: bash
+        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
+      - name: Install protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+      - name: Install Bazelisk
+        run: |
+          npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
+          bazel version
+
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Bazel check tools
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: command -v just || cargo binstall -y --force --locked just@$JUST_VERSION
+        shell: bash
+
+      - name: Bazel Build
+        id: bazel_build
+        continue-on-error: true
+        run: just bazel-build
+      - name: Bazel Clippy
+        id: bazel_clippy
+        continue-on-error: true
+        run: just bazel-lint
+      - name: Bazel Tests
+        id: bazel_test
+        continue-on-error: true
+        run: just bazel-test
+
+      - name: Fail if any Bazel verification step failed
+        if: ${{ steps.bazel_build.outcome == 'failure' || steps.bazel_clippy.outcome == 'failure' || steps.bazel_test.outcome == 'failure' }}
+        shell: bash
+        env:
+          BAZEL_BUILD_OUTCOME: ${{ steps.bazel_build.outcome }}
+          BAZEL_CLIPPY_OUTCOME: ${{ steps.bazel_clippy.outcome }}
+          BAZEL_TEST_OUTCOME: ${{ steps.bazel_test.outcome }}
+        run: |
+          has_failures=false
+
+          if [[ "$BAZEL_BUILD_OUTCOME" == 'failure' ]]; then
+            printf 'Bazel build failed, check the output of its step to troubleshoot the failure.\n'
+            has_failures=true
+          fi
+
+          if [[ "$BAZEL_CLIPPY_OUTCOME" == 'failure' ]]; then
+            printf 'Bazel Clippy failed, check the output of its step to troubleshoot the failure.\n'
+            has_failures=true
+          fi
+
+          if [[ "$BAZEL_TEST_OUTCOME" == 'failure' ]]; then
+            printf 'Bazel tests failed, check the output of its step to troubleshoot the failure.\n'
+            has_failures=true
+          fi
+
+          if [[ "$has_failures" == 'true' ]]; then
+            exit 1
+          fi
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
@@ -241,6 +404,61 @@ jobs:
         with:
           use_oidc: true
           files: codecov.json
+          disable_search: true
+          fail_ci_if_error: true
+
+  bazel-coverage:
+    name: Bazel Coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        with:
+          rustflags: ""
+
+      - name: Load tool versions
+        shell: bash
+        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
+      - name: Install protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+      - name: Install Bazelisk
+        run: |
+          npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
+          bazel version
+
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install just
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: command -v just || cargo binstall -y --force --locked just@$JUST_VERSION
+        shell: bash
+
+      - name: Generate Bazel coverage
+        run: just bazel-coverage
+
+      - name: Upload Bazel coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          use_oidc: true
+          files: bazel-coverage.lcov
           disable_search: true
           fail_ci_if_error: true
 
