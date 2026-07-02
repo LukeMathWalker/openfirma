@@ -1,6 +1,6 @@
 load("//bazel:rust_tests.bzl", "cargo_integration_test")
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_doc_test", "rust_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test", "rust_library", "rust_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -41,6 +41,11 @@ rust_test(
 
 rust_doc_test(
     name = "doc_tests",
+    crate = ":firma_run",
+)
+
+rust_doc(
+    name = "docs",
     crate = ":firma_run",
 )
 
