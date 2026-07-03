@@ -1,6 +1,15 @@
 load("@prelude//:prelude.bzl", "native")
 load("@prelude//rust:cargo_package.bzl", "cargo")
 
+POLICY_TESTDATA_SRCS = glob(["tests/testdata/policy/**/*"])
+
+genrule(
+    name = "firma-policy-testdata-manifest-dir",
+    srcs = POLICY_TESTDATA_SRCS,
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/tests/testdata/policy && for src in $SRCS; do rel=${src#*tests/testdata/policy/}; dir=${rel%/*}; if [ $dir = $rel ]; then dir=.; fi; mkdir -p $OUT/tests/testdata/policy/$dir; cp $src $OUT/tests/testdata/policy/$rel; done",
+)
+
 cargo.rust_binary(
     name = "firma",
     crate = "firma",
@@ -252,4 +261,17 @@ native.rust_test(
         "//third-party:tempfile",
         "//third-party:toml",
     ],
+)
+
+native.rust_test(
+    name = "policy_cli_test",
+    crate = "policy_cli",
+    crate_root = "tests/policy_cli.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+        "CARGO_MANIFEST_DIR": "$(location :firma-policy-testdata-manifest-dir)",
+    },
+    srcs = ["tests/policy_cli.rs"] + POLICY_TESTDATA_SRCS,
+    deps = [],
 )
