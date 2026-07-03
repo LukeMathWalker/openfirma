@@ -1,3 +1,4 @@
+load("@prelude//:prelude.bzl", "native")
 load("@prelude//rust:cargo_package.bzl", "cargo")
 
 cargo.rust_binary(
@@ -8,13 +9,39 @@ cargo.rust_binary(
     env = {
         "CARGO_PKG_VERSION": "0.1.2",
     },
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob([
+        "src/**/*.rs",
+        "src/contract/fixtures/**/*",
+    ]),
     deps = [
         "//third-party:anyhow",
         "//third-party:clap",
         "//third-party:objc2-virtualization",
         "//third-party:serde",
         "//third-party:serde_json",
+        "//third-party:thiserror",
+    ],
+)
+
+native.rust_test(
+    name = "unit_tests",
+    crate = "firma_vz_runner",
+    crate_root = "src/main.rs",
+    edition = "2024",
+    env = {
+        "CARGO_PKG_VERSION": "0.1.2",
+    },
+    srcs = glob([
+        "src/**/*.rs",
+        "src/contract/fixtures/**/*",
+    ]),
+    deps = [
+        "//third-party:anyhow",
+        "//third-party:clap",
+        "//third-party:objc2-virtualization",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:tempfile",
         "//third-party:thiserror",
     ],
 )
