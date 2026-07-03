@@ -205,3 +205,18 @@ native.rust_test(
         "//third-party:tempfile",
     ],
 )
+
+native.rust_test(
+    name = "stack_lifecycle_test",
+    crate = "stack_lifecycle",
+    crate_root = "tests/stack_lifecycle.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/stack_lifecycle.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
