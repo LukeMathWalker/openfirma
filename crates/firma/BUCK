@@ -63,3 +63,18 @@ native.rust_test(
     srcs = ["tests/cli_help.rs"],
     deps = [],
 )
+
+native.rust_test(
+    name = "cli_parsing_test",
+    crate = "cli_parsing",
+    crate_root = "tests/cli_parsing.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/cli_parsing.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:clap",
+    ],
+)
