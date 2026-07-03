@@ -1,3 +1,4 @@
+load("@prelude//:prelude.bzl", "native")
 load("@prelude//rust:cargo_package.bzl", "cargo")
 
 cargo.rust_library(
@@ -24,6 +25,45 @@ cargo.rust_library(
         "//third-party:serde",
         "//third-party:serde_json",
         "//third-party:sha2",
+        "//third-party:thiserror",
+        "//third-party:tokio",
+        "//third-party:tokio-rustls",
+        "//third-party:tokio-stream",
+        "//third-party:toml",
+        "//third-party:tonic",
+        "//third-party:tonic-health",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+        "//third-party:x509-parser",
+    ],
+)
+
+native.rust_test(
+    name = "unit_tests",
+    crate = "firma_authority",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-protobuf:firma_protobuf",
+        "//third-party:anyhow",
+        "//third-party:async-stream",
+        "//third-party:cedar-policy",
+        "//third-party:chrono",
+        "//third-party:fs-err",
+        "//third-party:hex",
+        "//third-party:notify",
+        "//third-party:pasetors",
+        "//third-party:prost-types",
+        "//third-party:rcgen",
+        "//third-party:rustls",
+        "//third-party:rustls-pemfile",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:sha2",
+        "//third-party:tempfile",
         "//third-party:thiserror",
         "//third-party:tokio",
         "//third-party:tokio-rustls",
