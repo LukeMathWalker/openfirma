@@ -177,3 +177,16 @@ native.rust_test(
     srcs = ["tests/sidecar_status_cli.rs"],
     deps = ["//third-party:tempfile"],
 )
+
+native.rust_test(
+    name = "stack_teardown_grandchildren_test",
+    crate = "stack_teardown_grandchildren",
+    crate_root = "tests/stack_teardown_grandchildren.rs",
+    edition = "2024",
+    srcs = ["tests/stack_teardown_grandchildren.rs"],
+    deps = [
+        "//crates/firma-stack:firma_stack",
+        "//third-party:nix",
+        "//third-party:tempfile",
+    ],
+)
