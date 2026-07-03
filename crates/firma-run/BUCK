@@ -43,6 +43,15 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "sidecar_autostart_ready_scrape_test",
+    crate = "sidecar_autostart_ready_scrape",
+    crate_root = "tests/sidecar_autostart_ready_scrape.rs",
+    edition = "2024",
+    srcs = ["tests/sidecar_autostart_ready_scrape.rs"],
+    deps = [":firma_run"],
+)
+
+native.rust_test(
     name = "unit_tests",
     crate = "firma_run",
     crate_root = "src/lib.rs",
