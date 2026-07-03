@@ -43,6 +43,19 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "sidecar_autostart_kill_on_drop_test",
+    crate = "sidecar_autostart_kill_on_drop",
+    crate_root = "tests/sidecar_autostart_kill_on_drop.rs",
+    edition = "2024",
+    srcs = ["tests/sidecar_autostart_kill_on_drop.rs"],
+    deps = [
+        ":firma_run",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
     name = "sidecar_autostart_timeout_test",
     crate = "sidecar_autostart_timeout",
     crate_root = "tests/sidecar_autostart_timeout.rs",
