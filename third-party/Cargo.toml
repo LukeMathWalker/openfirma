@@ -43,7 +43,7 @@ objc2-virtualization = { version = "0.3.2", default-features = false, features =
 owo-colors = { version = "4", features = ["supports-colors"] }
 p256 = { version = "0.13", features = ["ecdsa", "pem"] }
 pasetors = "0.7"
-pretty_assertions = "1"
+pretty_assertions = { version = "1", features = ["unstable"] }
 proptest = "1"
 prost = "0.14"
 prost-types = "0.14"

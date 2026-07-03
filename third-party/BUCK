@@ -7224,25 +7224,25 @@ cargo.rust_library(
 )
 
 http_archive(
-    name = "num-bigint-0.4.6.crate",
-    sha256 = "a5e44f723f1133c9deac646763579fdb3ac745e418f2a7af9cd0c431da1f20b9",
-    strip_prefix = "num-bigint-0.4.6",
-    urls = ["https://static.crates.io/crates/num-bigint/0.4.6/download"],
+    name = "num-bigint-0.4.7.crate",
+    sha256 = "c863e9ab5e7bf9c99ba75e1050f1e4d624ae87ed3532d6238ffbdc7b585dbbe6",
+    strip_prefix = "num-bigint-0.4.7",
+    urls = ["https://static.crates.io/crates/num-bigint/0.4.7/download"],
     visibility = [],
 )
 
 cargo.rust_library(
     name = "num-bigint-0.4",
-    srcs = [":num-bigint-0.4.6.crate"],
+    srcs = [":num-bigint-0.4.7.crate"],
     crate = "num_bigint",
-    crate_root = "num-bigint-0.4.6.crate/src/lib.rs",
+    crate_root = "num-bigint-0.4.7.crate/src/lib.rs",
     edition = "2021",
     env = {
         "CARGO_PKG_NAME": "num-bigint",
-        "CARGO_PKG_VERSION": "0.4.6",
+        "CARGO_PKG_VERSION": "0.4.7",
         "CARGO_PKG_VERSION_MAJOR": "0",
         "CARGO_PKG_VERSION_MINOR": "4",
-        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PATCH": "7",
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
@@ -8650,6 +8650,7 @@ cargo.rust_library(
     features = [
         "default",
         "std",
+        "unstable",
     ],
     visibility = [],
     deps = [
