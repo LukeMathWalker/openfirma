@@ -165,3 +165,15 @@ native.rust_test(
     srcs = ["tests/run_echo_smoke.rs"],
     deps = ["//third-party:tempfile"],
 )
+
+native.rust_test(
+    name = "sidecar_status_cli_test",
+    crate = "sidecar_status_cli",
+    crate_root = "tests/sidecar_status_cli.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_status_cli.rs"],
+    deps = ["//third-party:tempfile"],
+)
