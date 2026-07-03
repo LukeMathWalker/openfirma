@@ -220,3 +220,18 @@ native.rust_test(
         "//third-party:tempfile",
     ],
 )
+
+native.rust_test(
+    name = "sidecar_invalid_config_test",
+    crate = "sidecar_invalid_config",
+    crate_root = "tests/sidecar_invalid_config.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_invalid_config.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
