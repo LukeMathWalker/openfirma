@@ -43,6 +43,18 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "authority_autostart_timeout_test",
+    crate = "authority_autostart_timeout",
+    crate_root = "tests/authority_autostart_timeout.rs",
+    edition = "2024",
+    srcs = ["tests/authority_autostart_timeout.rs"],
+    deps = [
+        ":firma_run",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
     name = "authority_autostart_marker_test",
     crate = "authority_autostart_marker",
     crate_root = "tests/authority_autostart_marker.rs",
