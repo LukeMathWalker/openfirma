@@ -43,6 +43,20 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "sidecar_config_merge_test",
+    crate = "sidecar_config_merge",
+    crate_root = "tests/sidecar_config_merge.rs",
+    edition = "2024",
+    srcs = ["tests/sidecar_config_merge.rs"],
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
     name = "authority_autostart_ready_scrape_test",
     crate = "authority_autostart_ready_scrape",
     crate_root = "tests/authority_autostart_ready_scrape.rs",
