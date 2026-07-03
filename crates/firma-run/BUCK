@@ -43,6 +43,19 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "authority_bootstrap_prompt_test",
+    crate = "authority_bootstrap_prompt",
+    crate_root = "tests/authority_bootstrap_prompt.rs",
+    edition = "2024",
+    srcs = ["tests/authority_bootstrap_prompt.rs"],
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
     name = "authority_autostart_eaddrinuse_test",
     crate = "authority_autostart_eaddrinuse",
     crate_root = "tests/authority_autostart_eaddrinuse.rs",
