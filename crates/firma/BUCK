@@ -90,3 +90,15 @@ native.rust_test(
     srcs = ["tests/run_authority_flags.rs"],
     deps = [],
 )
+
+native.rust_test(
+    name = "run_autostart_flags_test",
+    crate = "run_autostart_flags",
+    crate_root = "tests/run_autostart_flags.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/run_autostart_flags.rs"],
+    deps = [],
+)
