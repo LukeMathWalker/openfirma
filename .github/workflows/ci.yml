@@ -285,8 +285,12 @@ jobs:
           fi
 
   bazel-check:
-    name: Bazel Check
-    runs-on: ubuntu-latest
+    name: Bazel Check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
