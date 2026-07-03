@@ -114,3 +114,15 @@ native.rust_test(
     srcs = ["tests/monitor_decoupled.rs"],
     deps = ["//third-party:tempfile"],
 )
+
+native.rust_test(
+    name = "monitor_audit_stream_test",
+    crate = "monitor_audit_stream",
+    crate_root = "tests/monitor_audit_stream.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/monitor_audit_stream.rs"],
+    deps = ["//third-party:tempfile"],
+)
