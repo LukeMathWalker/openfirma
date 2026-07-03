@@ -51,6 +51,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org
       - name: Install Bazelisk
+        shell: bash
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
           bazel version
@@ -121,6 +122,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org
       - name: Install Bazelisk
+        shell: bash
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
           bazel version
@@ -303,11 +305,23 @@ jobs:
       - name: Load tool versions
         shell: bash
         run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
+      - name: Shorten Bazel output root on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: printf 'BAZEL_STARTUP_FLAGS=--output_user_root=D:/bzl\n' >> "$GITHUB_ENV"
       - name: Install protoc
         uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
         with:
           version: ${{ env.PROTOC_VERSION }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Export protoc path for Bazel
+        shell: bash
+        run: |
+          protoc_path="$(command -v protoc)"
+          if [[ "$RUNNER_OS" == 'Windows' ]]; then
+            protoc_path="$(cygpath -w "$protoc_path")"
+          fi
+          printf 'PROTOC=%s\n' "$protoc_path" >> "$GITHUB_ENV"
 
       - name: Set up Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -315,6 +329,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org
       - name: Install Bazelisk
+        shell: bash
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
           bazel version
@@ -345,7 +360,8 @@ jobs:
       - name: Bazel Tests
         id: bazel_test
         continue-on-error: true
-        run: just bazel-test
+        shell: bash
+        run: BAZEL_FLAGS="${BAZEL_FLAGS:-} --test_output=errors" just bazel-test
 
       - name: Fail if any Bazel verification step failed
         if: ${{ steps.bazel_build.outcome == 'failure' || steps.bazel_clippy.outcome == 'failure' || steps.bazel_test.outcome == 'failure' }}
@@ -449,6 +465,14 @@ jobs:
         with:
           version: ${{ env.PROTOC_VERSION }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Export protoc path for Bazel
+        shell: bash
+        run: |
+          protoc_path="$(command -v protoc)"
+          if [[ "$RUNNER_OS" == 'Windows' ]]; then
+            protoc_path="$(cygpath -w "$protoc_path")"
+          fi
+          printf 'PROTOC=%s\n' "$protoc_path" >> "$GITHUB_ENV"
 
       - name: Set up Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -456,6 +480,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org
       - name: Install Bazelisk
+        shell: bash
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
           bazel version
