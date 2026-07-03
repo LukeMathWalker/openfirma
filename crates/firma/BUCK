@@ -326,3 +326,20 @@ native.rust_test(
         "//third-party:toml",
     ],
 )
+
+native.rust_test(
+    name = "sidecar_readiness_gate_test",
+    crate = "sidecar_readiness_gate",
+    crate_root = "tests/sidecar_readiness_gate.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_readiness_gate.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:p256",
+        "//third-party:rand",
+        "//third-party:tempfile",
+    ],
+)
