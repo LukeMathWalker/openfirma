@@ -290,3 +290,21 @@ native.rust_test(
         "//third-party:tempfile",
     ],
 )
+
+native.rust_test(
+    name = "sidecar_tampered_seed_e2e_test",
+    crate = "sidecar_tampered_seed_e2e",
+    crate_root = "tests/sidecar_tampered_seed_e2e.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_tampered_seed_e2e.rs"],
+    deps = [
+        "//crates/firma-core:firma_core",
+        "//third-party:p256",
+        "//third-party:rand",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
