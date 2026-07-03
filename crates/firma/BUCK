@@ -380,3 +380,18 @@ native.rust_test(
         "//third-party:toml",
     ],
 )
+
+native.rust_test(
+    name = "child_process_escape_test",
+    crate = "child_process_escape",
+    crate_root = "tests/child_process_escape.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/child_process_escape.rs"],
+    deps = [
+        "//third-party:tempfile",
+        "//third-party:wait-timeout",
+    ],
+)
