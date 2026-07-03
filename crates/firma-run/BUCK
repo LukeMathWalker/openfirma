@@ -43,6 +43,18 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "sidecar_autostart_env_sandbox_id_test",
+    crate = "sidecar_autostart_env_sandbox_id",
+    crate_root = "tests/sidecar_autostart_env_sandbox_id.rs",
+    edition = "2024",
+    srcs = ["tests/sidecar_autostart_env_sandbox_id.rs"],
+    deps = [
+        ":firma_run",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
     name = "sidecar_config_merge_test",
     crate = "sidecar_config_merge",
     crate_root = "tests/sidecar_config_merge.rs",
