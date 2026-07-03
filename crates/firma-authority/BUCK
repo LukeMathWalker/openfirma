@@ -39,6 +39,15 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "profile_developer_test",
+    crate = "profile_developer",
+    crate_root = "tests/profile_developer.rs",
+    edition = "2024",
+    srcs = ["tests/profile_developer.rs"],
+    deps = [":firma_authority"],
+)
+
+native.rust_test(
     name = "unit_tests",
     crate = "firma_authority",
     crate_root = "src/lib.rs",
