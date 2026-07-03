@@ -359,3 +359,24 @@ native.rust_test(
         "//third-party:tempfile",
     ],
 )
+
+native.rust_test(
+    name = "live_capability_e2e_test",
+    crate = "live_capability_e2e",
+    crate_root = "tests/live_capability_e2e.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+        "RUST_TEST_THREADS": "1",
+    },
+    srcs = ["tests/live_capability_e2e.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-run:firma_run",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
