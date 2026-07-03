@@ -6,6 +6,13 @@ module(
 bazel_dep(name = "rules_rust", version = "0.71.3")
 bazel_dep(name = "rules_shell", version = "0.8.0")
 
+single_version_override(
+    module_name = "rules_rust",
+    patch_strip = 1,
+    patches = ["//bazel:rules_rust-windows-ldep-consolidation.patch"],
+    version = "0.71.3",
+)
+
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(
     versions = ["1.96.0"],

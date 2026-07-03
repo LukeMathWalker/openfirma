@@ -1,0 +1,137 @@
+diff --git a/rust/private/rustdoc/rustdoc_test_writer.rs b/rust/private/rustdoc/rustdoc_test_writer.rs
+--- a/rust/private/rustdoc/rustdoc_test_writer.rs
++++ b/rust/private/rustdoc/rustdoc_test_writer.rs
+@@ -224,6 +224,11 @@
+             strip_substrings
+                 .iter()
+                 .for_each(|substring| stripped_arg = stripped_arg.replace(substring, ""));
++            if let Some(runfile_path) = stripped_arg.strip_prefix("../") {
++                // Under Bzlmod on Windows, external runfiles are exposed under
++                // `_main/external/<repo>` rather than as siblings of `_main`.
++                stripped_arg = format!("../external/{runfile_path}");
++            }
+             stripped_arg
+         })
+         .map(|arg| format!("'{arg}'"))
+diff --git a/util/process_wrapper/options.rs b/util/process_wrapper/options.rs
+--- a/util/process_wrapper/options.rs
++++ b/util/process_wrapper/options.rs
+@@ -344,6 +344,67 @@
+     arg
+ }
+ 
++/// On Windows, rustc adds dependency search paths to PATH when loading crates.
++/// Large Bazel Rust actions can exceed the Windows environment-variable limit,
++/// causing rustc to report that direct crates cannot be found. Consolidate many
++/// dependency search directories into one staging directory before invoking rustc.
++#[cfg(windows)]
++fn consolidate_ldeps(
++    ldep_paths: &[String],
++    param_file: &str,
++) -> Result<Option<String>, OptionError> {
++    // Keep small actions unchanged; the failing cases have hundreds of entries.
++    if ldep_paths.len() < 300 {
++        return Ok(None);
++    }
++
++    let consolidated_dir = format!("{param_file}.ldeps");
++    let _ = std::fs::remove_dir_all(&consolidated_dir);
++    std::fs::create_dir_all(&consolidated_dir).map_err(|e| {
++        OptionError::Generic(format!("failed to create {consolidated_dir}: {e}"))
++    })?;
++
++    for dir in ldep_paths {
++        let entries = match std::fs::read_dir(dir) {
++            Ok(entries) => entries,
++            Err(_) => continue,
++        };
++
++        for entry in entries.flatten() {
++            let path = entry.path();
++            if !path.is_file() {
++                continue;
++            }
++
++            let Some(name) = path.file_name() else {
++                continue;
++            };
++            let target = std::path::Path::new(&consolidated_dir).join(name);
++            if target.exists() {
++                continue;
++            }
++
++            if std::fs::hard_link(&path, &target).is_err() {
++                std::fs::copy(&path, &target).map_err(|e| {
++                    OptionError::Generic(format!(
++                        "failed to stage {path:?} into ldeps directory: {e}"
++                    ))
++                })?;
++            }
++        }
++    }
++
++    Ok(Some(consolidated_dir))
++}
++
++#[cfg(not(windows))]
++fn consolidate_ldeps(
++    _ldep_paths: &[String],
++    _param_file: &str,
++) -> Result<Option<String>, OptionError> {
++    Ok(None)
++}
++
+ /// Apply substitutions to the given param file. Returns true iff any allow-features flags were found.
+ fn prepare_param_file(
+     filename: &str,
+@@ -356,21 +417,47 @@
+         subst_mappings: &[(String, String)],
+         read_file: &mut impl FnMut(&str) -> Result<Vec<String>, OptionError>,
+         write_to_file: &mut impl FnMut(&str) -> Result<(), OptionError>,
++        collected_ldeps: &mut Vec<String>,
+     ) -> Result<bool, OptionError> {
+         let mut has_allow_features_flag = false;
+         for arg in read_file(filename)? {
+             let arg = prepare_arg(arg, subst_mappings);
+             has_allow_features_flag |= is_allow_features_flag(&arg);
+             if let Some(arg_file) = arg.strip_prefix('@') {
+-                has_allow_features_flag |=
+-                    process_file(arg_file, subst_mappings, read_file, write_to_file)?;
++                has_allow_features_flag |= process_file(
++                    arg_file,
++                    subst_mappings,
++                    read_file,
++                    write_to_file,
++                    collected_ldeps,
++                )?;
++            } else if let Some(ldep) = arg.strip_prefix("-Ldependency=") {
++                collected_ldeps.push(ldep.to_owned());
+             } else {
+                 write_to_file(&arg)?;
+             }
+         }
+         Ok(has_allow_features_flag)
+     }
+-    let has_allow_features_flag = process_file(filename, subst_mappings, read_file, write_to_file)?;
++
++    let mut collected_ldeps = Vec::new();
++    let has_allow_features_flag = process_file(
++        filename,
++        subst_mappings,
++        read_file,
++        write_to_file,
++        &mut collected_ldeps,
++    )?;
++
++    match consolidate_ldeps(&collected_ldeps, filename)? {
++        Some(consolidated_dir) => write_to_file(&format!("-Ldependency={consolidated_dir}"))?,
++        None => {
++            for dir in collected_ldeps {
++                write_to_file(&format!("-Ldependency={dir}"))?;
++            }
++        }
++    }
++
+     Ok(has_allow_features_flag)
+ }
+ 

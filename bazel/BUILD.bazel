@@ -13,5 +13,6 @@ sh_binary(
 exports_files([
     "cargo_audit_check.sh",
     "cargo_deny_check.sh",
+    "rules_rust-windows-ldep-consolidation.patch",
     "rust_tests.bzl",
 ])
