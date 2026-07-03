@@ -10,10 +10,10 @@
 //! Requests are dispatched by the `action` field:
 //!
 //! - `"local.exec"` — governance request from `firma-run`; responds with
-//!   [`LocalExecResponse`].
+//!   `LocalExecResponse`.
 //! - `"local.exec.approve"` / `"local.exec.revoke"` — management commands from
 //!   an operator or the `firma token` CLI; responds with
-//!   [`LocalExecManagementResponse`].
+//!   `LocalExecManagementResponse`.
 //!
 //! # Security
 //!
