@@ -23,6 +23,27 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "unit_tests",
+    crate = "firma_stack",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//third-party:ctrlc",
+        "//third-party:serde",
+        "//third-party:tempfile",
+        "//third-party:thiserror",
+        "//third-party:toml",
+        "//third-party:tracing",
+    ] + select({
+        "prelude//os/constraints:windows": ["//third-party:windows-sys"],
+        "DEFAULT": ["//third-party:nix"],
+    }),
+)
+
+native.rust_test(
     name = "config_parse_test",
     crate = "config_parse",
     crate_root = "tests/config_parse.rs",
