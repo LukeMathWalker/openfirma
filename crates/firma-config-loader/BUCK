@@ -53,6 +53,21 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "unit_tests",
+    crate = "firma_config_loader",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    deps = [
+        "//third-party:anyhow",
+        "//third-party:fs-err",
+        "//third-party:serde",
+        "//third-party:thiserror",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
     name = "integration_test",
     crate = "integration",
     crate_root = "tests/integration/main.rs",
