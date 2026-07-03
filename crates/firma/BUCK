@@ -126,3 +126,15 @@ native.rust_test(
     srcs = ["tests/monitor_audit_stream.rs"],
     deps = ["//third-party:tempfile"],
 )
+
+native.rust_test(
+    name = "authority_keygen_test",
+    crate = "authority_keygen",
+    crate_root = "tests/authority_keygen.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/authority_keygen.rs"],
+    deps = ["//third-party:tempfile"],
+)
