@@ -39,6 +39,23 @@ cargo.rust_library(
 )
 
 native.rust_test(
+    name = "e2e_test",
+    crate = "e2e",
+    crate_root = "tests/e2e.rs",
+    edition = "2024",
+    srcs = ["tests/e2e.rs"],
+    deps = [
+        ":firma_authority",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-protobuf:firma_protobuf",
+        "//third-party:pasetors",
+        "//third-party:tempfile",
+        "//third-party:tokio",
+        "//third-party:tonic",
+    ],
+)
+
+native.rust_test(
     name = "profile_developer_test",
     crate = "profile_developer",
     crate_root = "tests/profile_developer.rs",
