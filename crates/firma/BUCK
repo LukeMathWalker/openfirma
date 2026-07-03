@@ -138,3 +138,18 @@ native.rust_test(
     srcs = ["tests/authority_keygen.rs"],
     deps = ["//third-party:tempfile"],
 )
+
+native.rust_test(
+    name = "doctor_test",
+    crate = "doctor",
+    crate_root = "tests/doctor.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/doctor.rs"],
+    deps = [
+        "//third-party:serde_json",
+        "//third-party:tempfile",
+    ],
+)
