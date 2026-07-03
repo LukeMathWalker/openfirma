@@ -275,3 +275,18 @@ native.rust_test(
     srcs = ["tests/policy_cli.rs"] + POLICY_TESTDATA_SRCS,
     deps = [],
 )
+
+native.rust_test(
+    name = "sidecar_startup_contract_test",
+    crate = "sidecar_startup_contract",
+    crate_root = "tests/sidecar_startup_contract.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_startup_contract.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
