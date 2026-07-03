@@ -54,6 +54,11 @@ jobs:
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
           bazel version
+      - name: Configure BuildBuddy
+        env:
+          BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
+        run: ./scripts/ci/configure-buildbuddy.sh
+        shell: bash
 
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
@@ -119,6 +124,11 @@ jobs:
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
           bazel version
+      - name: Configure BuildBuddy
+        env:
+          BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
+        run: ./scripts/ci/configure-buildbuddy.sh
+        shell: bash
 
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
@@ -304,6 +314,11 @@ jobs:
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
           bazel version
+      - name: Configure BuildBuddy
+        env:
+          BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
+        run: ./scripts/ci/configure-buildbuddy.sh
+        shell: bash
 
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
@@ -440,6 +455,11 @@ jobs:
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
           bazel version
+      - name: Configure BuildBuddy
+        env:
+          BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
+        run: ./scripts/ci/configure-buildbuddy.sh
+        shell: bash
 
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1

@@ -1,8 +1,20 @@
 common --enable_bzlmod
 
+# Optional local/CI credentials for the BuildBuddy remote cache. This file must
+# not be checked in; CI generates it from BUILD_BUDDY_API_KEY.
+try-import %workspace%/.bazelrc.buildbuddy.auth
+
 # Keep Bazel outputs out of source directories unless explicitly requested.
 build --experimental_convenience_symlinks=ignore
 
 # Match the existing Cargo build.rs contract for protobuf crates: protoc is a
 # system tool discovered on PATH.
 build --action_env=PATH
+
+# Opt-in remote caching via `bazel --config=buildbuddy ...` or
+# `BAZEL_FLAGS=--config=buildbuddy just bazel-check`.
+build:buildbuddy --bes_results_url=https://app.buildbuddy.io/invocation/
+build:buildbuddy --bes_backend=grpcs://remote.buildbuddy.io
+common:buildbuddy --remote_cache=grpcs://remote.buildbuddy.io
+common:buildbuddy --remote_download_toplevel
+common:buildbuddy --remote_timeout=10m
