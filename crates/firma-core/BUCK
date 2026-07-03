@@ -1,3 +1,4 @@
+load("@prelude//:prelude.bzl", "native")
 load("@prelude//rust:cargo_package.bzl", "cargo")
 
 cargo.rust_library(
@@ -17,6 +18,29 @@ cargo.rust_library(
         "//third-party:serde",
         "//third-party:serde_json",
         "//third-party:thiserror",
+        "//third-party:uuid",
+    ],
+)
+
+native.rust_test(
+    name = "unit_tests",
+    crate = "firma_core",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]) + ["firma.cedarschema"],
+    deps = [
+        "//third-party:async-trait",
+        "//third-party:cedar-policy",
+        "//third-party:chrono",
+        "//third-party:http",
+        "//third-party:pasetors",
+        "//third-party:pretty_assertions",
+        "//third-party:regex",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:strum",
+        "//third-party:thiserror",
+        "//third-party:toml",
         "//third-party:uuid",
     ],
 )
