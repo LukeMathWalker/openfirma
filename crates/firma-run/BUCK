@@ -1,3 +1,4 @@
+load("@prelude//:prelude.bzl", "native")
 load("@prelude//rust:cargo_package.bzl", "cargo")
 
 cargo.rust_library(
@@ -7,6 +8,7 @@ cargo.rust_library(
     edition = "2024",
     srcs = glob([
         "src/**/*.rs",
+        "src/backend/fixtures/**/*",
         "src/resources/**/*",
         "seccomp/**/*.toml",
     ]),
@@ -28,6 +30,50 @@ cargo.rust_library(
         "//third-party:serde",
         "//third-party:serde_json",
         "//third-party:sha2",
+        "//third-party:thiserror",
+        "//third-party:tokio",
+        "//third-party:toml",
+        "//third-party:toml_edit",
+        "//third-party:tonic",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+        "//third-party:uuid",
+        "//third-party:wait-timeout",
+    ],
+)
+
+native.rust_test(
+    name = "unit_tests",
+    crate = "firma_run",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    env = {"RUST_TEST_THREADS": "1"},
+    srcs = glob([
+        "src/**/*.rs",
+        "src/backend/fixtures/**/*",
+        "src/resources/**/*",
+        "seccomp/**/*.toml",
+    ]),
+    deps = [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-protobuf:firma_protobuf",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//third-party:anyhow",
+        "//third-party:chrono",
+        "//third-party:ctrlc",
+        "//third-party:dialoguer",
+        "//third-party:fs-err",
+        "//third-party:hex",
+        "//third-party:nix",
+        "//third-party:p256",
+        "//third-party:pretty_assertions",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:sha2",
+        "//third-party:tempfile",
         "//third-party:thiserror",
         "//third-party:tokio",
         "//third-party:toml",
