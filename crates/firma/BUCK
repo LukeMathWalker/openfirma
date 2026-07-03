@@ -343,3 +343,19 @@ native.rust_test(
         "//third-party:tempfile",
     ],
 )
+
+native.rust_test(
+    name = "e2e_startup_test",
+    crate = "e2e_startup",
+    crate_root = "tests/e2e_startup.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/e2e_startup.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:nix",
+        "//third-party:tempfile",
+    ],
+)
