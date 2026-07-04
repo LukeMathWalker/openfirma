@@ -157,8 +157,11 @@ coverage:
   cargo llvm-cov nextest --workspace --all-features --codecov --output-path codecov.json
 
 fuzz-check:
-  nightly="$(< .rust-nightly)"
-  cd fuzz && cargo +"$nightly" check
+  buck2 build --target-platforms //platforms:aarch64-apple-darwin \
+    '//fuzz:normalizer[check]' \
+    '//fuzz:paseto_verify[check]' \
+    '//fuzz:capability_seed[check]' \
+    '//fuzz:capability_seed_toml[check]'
 
 bench:
   cargo bench --workspace --no-fail-fast

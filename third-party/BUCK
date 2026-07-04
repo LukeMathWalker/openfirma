@@ -354,6 +354,42 @@ cargo.rust_library(
 )
 
 alias(
+    name = "arbitrary",
+    actual = ":arbitrary-1",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "arbitrary-1.4.2.crate",
+    sha256 = "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1",
+    strip_prefix = "arbitrary-1.4.2",
+    urls = ["https://static.crates.io/crates/arbitrary/1.4.2/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "arbitrary-1",
+    srcs = [":arbitrary-1.4.2.crate"],
+    crate = "arbitrary",
+    crate_root = "arbitrary-1.4.2.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_PKG_NAME": "arbitrary",
+        "CARGO_PKG_VERSION": "1.4.2",
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "4",
+        "CARGO_PKG_VERSION_PATCH": "2",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "derive",
+        "derive_arbitrary",
+    ],
+    visibility = [],
+    deps = [":derive_arbitrary-1"],
+)
+
+alias(
     name = "arc-swap",
     actual = ":arc-swap-1",
     visibility = ["PUBLIC"],
@@ -1160,9 +1196,22 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "65",
         "CARGO_PKG_VERSION_PRE": "",
     },
+    features = ["parallel"],
+    platform = {
+        "linux-x86_64": dict(
+            deps = [":libc-0.2"],
+        ),
+        "macos-arm64": dict(
+            deps = [":libc-0.2"],
+        ),
+        "macos-x86_64": dict(
+            deps = [":libc-0.2"],
+        ),
+    },
     visibility = [],
     deps = [
         ":find-msvc-tools-0.1",
+        ":jobserver-0.1",
         ":shlex-2",
     ],
 )
@@ -2947,6 +2996,37 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "derive_arbitrary-1.4.2.crate",
+    sha256 = "1e567bd82dcff979e4b03460c307b3cdc9e96fde3d73bed1496d2bc75d9dd62a",
+    strip_prefix = "derive_arbitrary-1.4.2",
+    urls = ["https://static.crates.io/crates/derive_arbitrary/1.4.2/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "derive_arbitrary-1",
+    srcs = [":derive_arbitrary-1.4.2.crate"],
+    crate = "derive_arbitrary",
+    crate_root = "derive_arbitrary-1.4.2.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_PKG_NAME": "derive_arbitrary",
+        "CARGO_PKG_VERSION": "1.4.2",
+        "CARGO_PKG_VERSION_MAJOR": "1",
+        "CARGO_PKG_VERSION_MINOR": "4",
+        "CARGO_PKG_VERSION_PATCH": "2",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    proc_macro = True,
+    visibility = [],
+    deps = [
+        ":proc-macro2-1",
+        ":quote-1",
+        ":syn-2",
+    ],
+)
+
+http_archive(
     name = "derive_more-2.1.1.crate",
     sha256 = "d751e9e49156b02b44f9c1815bcb94b984cdcc4396ecc32521c739452808b134",
     strip_prefix = "derive_more-2.1.1",
@@ -3920,25 +4000,25 @@ alias(
 )
 
 http_archive(
-    name = "fs-err-3.3.0.crate",
-    sha256 = "73fde052dbfc920003cfd2c8e2c6e6d4cc7c1091538c3a24226cec0665ab08c0",
-    strip_prefix = "fs-err-3.3.0",
-    urls = ["https://static.crates.io/crates/fs-err/3.3.0/download"],
+    name = "fs-err-3.3.1.crate",
+    sha256 = "b91aa448ca50d7e79433bdf3ee8d99215430d2ec02ade5aefab2a073a1822e8a",
+    strip_prefix = "fs-err-3.3.1",
+    urls = ["https://static.crates.io/crates/fs-err/3.3.1/download"],
     visibility = [],
 )
 
 cargo.rust_library(
     name = "fs-err-3",
-    srcs = [":fs-err-3.3.0.crate"],
+    srcs = [":fs-err-3.3.1.crate"],
     crate = "fs_err",
-    crate_root = "fs-err-3.3.0.crate/src/lib.rs",
+    crate_root = "fs-err-3.3.1.crate/src/lib.rs",
     edition = "2018",
     env = {
         "CARGO_PKG_NAME": "fs-err",
-        "CARGO_PKG_VERSION": "3.3.0",
+        "CARGO_PKG_VERSION": "3.3.1",
         "CARGO_PKG_VERSION_MAJOR": "3",
         "CARGO_PKG_VERSION_MINOR": "3",
-        "CARGO_PKG_VERSION_PATCH": "0",
+        "CARGO_PKG_VERSION_PATCH": "1",
         "CARGO_PKG_VERSION_PRE": "",
     },
     visibility = [],
@@ -6098,6 +6178,45 @@ cargo.rust_library(
 )
 
 http_archive(
+    name = "jobserver-0.1.34.crate",
+    sha256 = "9afb3de4395d6b3e67a780b6de64b51c978ecf11cb9a462c66be7d4ca9039d33",
+    strip_prefix = "jobserver-0.1.34",
+    urls = ["https://static.crates.io/crates/jobserver/0.1.34/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "jobserver-0.1",
+    srcs = [":jobserver-0.1.34.crate"],
+    crate = "jobserver",
+    crate_root = "jobserver-0.1.34.crate/src/lib.rs",
+    edition = "2021",
+    env = {
+        "CARGO_PKG_NAME": "jobserver",
+        "CARGO_PKG_VERSION": "0.1.34",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "1",
+        "CARGO_PKG_VERSION_PATCH": "34",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    platform = {
+        "linux-x86_64": dict(
+            deps = [":libc-0.2"],
+        ),
+        "macos-arm64": dict(
+            deps = [":libc-0.2"],
+        ),
+        "macos-x86_64": dict(
+            deps = [":libc-0.2"],
+        ),
+        "windows-x86_64": dict(
+            deps = [":getrandom-0.3"],
+        ),
+    },
+    visibility = [],
+)
+
+http_archive(
     name = "kasuari-0.4.12.crate",
     sha256 = "bde5057d6143cc94e861d90f591b9303d6716c6b9602309150bd068853c10899",
     strip_prefix = "kasuari-0.4.12",
@@ -6260,6 +6379,42 @@ cargo.rust_library(
         "std",
     ],
     visibility = [],
+)
+
+alias(
+    name = "libfuzzer-sys",
+    actual = ":libfuzzer-sys-0.4",
+    visibility = ["PUBLIC"],
+)
+
+http_archive(
+    name = "libfuzzer-sys-0.4.13.crate",
+    sha256 = "a9fd2f41a1cba099f79a0b6b6c35656cf7c03351a7bae8ff0f28f25270f929d2",
+    strip_prefix = "libfuzzer-sys-0.4.13",
+    urls = ["https://static.crates.io/crates/libfuzzer-sys/0.4.13/download"],
+    visibility = [],
+)
+
+cargo.rust_library(
+    name = "libfuzzer-sys-0.4",
+    srcs = [":libfuzzer-sys-0.4.13.crate"],
+    crate = "libfuzzer_sys",
+    crate_root = "libfuzzer-sys-0.4.13.crate/src/lib.rs",
+    edition = "2018",
+    env = {
+        "CARGO_PKG_NAME": "libfuzzer-sys",
+        "CARGO_PKG_VERSION": "0.4.13",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "4",
+        "CARGO_PKG_VERSION_PATCH": "13",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    features = [
+        "default",
+        "link_libfuzzer",
+    ],
+    visibility = [],
+    deps = [":arbitrary-1"],
 )
 
 http_archive(
@@ -8123,25 +8278,25 @@ cargo.rust_library(
 )
 
 http_archive(
-    name = "pest-2.8.6.crate",
-    sha256 = "e0848c601009d37dfa3430c4666e147e49cdcf1b92ecd3e63657d8a5f19da662",
-    strip_prefix = "pest-2.8.6",
-    urls = ["https://static.crates.io/crates/pest/2.8.6/download"],
+    name = "pest-2.8.7.crate",
+    sha256 = "47627dd7305c6a2d6c8c6bcd24c5a4c17dbbf425f4f9c5313e724b38fc9782e9",
+    strip_prefix = "pest-2.8.7",
+    urls = ["https://static.crates.io/crates/pest/2.8.7/download"],
     visibility = [],
 )
 
 cargo.rust_library(
     name = "pest-2",
-    srcs = [":pest-2.8.6.crate"],
+    srcs = [":pest-2.8.7.crate"],
     crate = "pest",
-    crate_root = "pest-2.8.6.crate/src/lib.rs",
+    crate_root = "pest-2.8.7.crate/src/lib.rs",
     edition = "2021",
     env = {
         "CARGO_PKG_NAME": "pest",
-        "CARGO_PKG_VERSION": "2.8.6",
+        "CARGO_PKG_VERSION": "2.8.7",
         "CARGO_PKG_VERSION_MAJOR": "2",
         "CARGO_PKG_VERSION_MINOR": "8",
-        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PATCH": "7",
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
@@ -8157,25 +8312,25 @@ cargo.rust_library(
 )
 
 http_archive(
-    name = "pest_derive-2.8.6.crate",
-    sha256 = "11f486f1ea21e6c10ed15d5a7c77165d0ee443402f0780849d1768e7d9d6fe77",
-    strip_prefix = "pest_derive-2.8.6",
-    urls = ["https://static.crates.io/crates/pest_derive/2.8.6/download"],
+    name = "pest_derive-2.8.7.crate",
+    sha256 = "4b4254325ecad416ab689e27ba51da03ba01a9632bc6e108f5fe7c3c4ad29d58",
+    strip_prefix = "pest_derive-2.8.7",
+    urls = ["https://static.crates.io/crates/pest_derive/2.8.7/download"],
     visibility = [],
 )
 
 cargo.rust_library(
     name = "pest_derive-2",
-    srcs = [":pest_derive-2.8.6.crate"],
+    srcs = [":pest_derive-2.8.7.crate"],
     crate = "pest_derive",
-    crate_root = "pest_derive-2.8.6.crate/src/lib.rs",
+    crate_root = "pest_derive-2.8.7.crate/src/lib.rs",
     edition = "2021",
     env = {
         "CARGO_PKG_NAME": "pest_derive",
-        "CARGO_PKG_VERSION": "2.8.6",
+        "CARGO_PKG_VERSION": "2.8.7",
         "CARGO_PKG_VERSION_MAJOR": "2",
         "CARGO_PKG_VERSION_MINOR": "8",
-        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PATCH": "7",
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = [
@@ -8191,25 +8346,25 @@ cargo.rust_library(
 )
 
 http_archive(
-    name = "pest_generator-2.8.6.crate",
-    sha256 = "8040c4647b13b210a963c1ed407c1ff4fdfa01c31d6d2a098218702e6664f94f",
-    strip_prefix = "pest_generator-2.8.6",
-    urls = ["https://static.crates.io/crates/pest_generator/2.8.6/download"],
+    name = "pest_generator-2.8.7.crate",
+    sha256 = "6c4c0e91ead7a8f7acecbca6f003fc2e8282b1dbe2dd9c9d2f16aba42995e0a7",
+    strip_prefix = "pest_generator-2.8.7",
+    urls = ["https://static.crates.io/crates/pest_generator/2.8.7/download"],
     visibility = [],
 )
 
 cargo.rust_library(
     name = "pest_generator-2",
-    srcs = [":pest_generator-2.8.6.crate"],
+    srcs = [":pest_generator-2.8.7.crate"],
     crate = "pest_generator",
-    crate_root = "pest_generator-2.8.6.crate/src/lib.rs",
+    crate_root = "pest_generator-2.8.7.crate/src/lib.rs",
     edition = "2021",
     env = {
         "CARGO_PKG_NAME": "pest_generator",
-        "CARGO_PKG_VERSION": "2.8.6",
+        "CARGO_PKG_VERSION": "2.8.7",
         "CARGO_PKG_VERSION_MAJOR": "2",
         "CARGO_PKG_VERSION_MINOR": "8",
-        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PATCH": "7",
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = ["std"],
@@ -8224,25 +8379,25 @@ cargo.rust_library(
 )
 
 http_archive(
-    name = "pest_meta-2.8.6.crate",
-    sha256 = "89815c69d36021a140146f26659a81d6c2afa33d216d736dd4be5381a7362220",
-    strip_prefix = "pest_meta-2.8.6",
-    urls = ["https://static.crates.io/crates/pest_meta/2.8.6/download"],
+    name = "pest_meta-2.8.7.crate",
+    sha256 = "f9744bc48116fee06334924bb5f2bad41eed5e89bd26e29b0b799f9a3f82c210",
+    strip_prefix = "pest_meta-2.8.7",
+    urls = ["https://static.crates.io/crates/pest_meta/2.8.7/download"],
     visibility = [],
 )
 
 cargo.rust_library(
     name = "pest_meta-2",
-    srcs = [":pest_meta-2.8.6.crate"],
+    srcs = [":pest_meta-2.8.7.crate"],
     crate = "pest_meta",
-    crate_root = "pest_meta-2.8.6.crate/src/lib.rs",
+    crate_root = "pest_meta-2.8.7.crate/src/lib.rs",
     edition = "2021",
     env = {
         "CARGO_PKG_NAME": "pest_meta",
-        "CARGO_PKG_VERSION": "2.8.6",
+        "CARGO_PKG_VERSION": "2.8.7",
         "CARGO_PKG_VERSION_MAJOR": "2",
         "CARGO_PKG_VERSION_MINOR": "8",
-        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PATCH": "7",
         "CARGO_PKG_VERSION_PRE": "",
     },
     features = ["default"],

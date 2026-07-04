@@ -1,0 +1,46 @@
+load("@prelude//:prelude.bzl", "native")
+
+FUZZ_DEPS = [
+    "//crates/firma-core:firma_core",
+    "//crates/firma-sidecar:firma_sidecar",
+    "//third-party:arbitrary",
+    "//third-party:chrono",
+    "//third-party:libfuzzer-sys",
+    "//third-party:toml",
+]
+
+native.rust_binary(
+    name = "normalizer",
+    crate = "normalizer",
+    crate_root = "fuzz_targets/normalizer.rs",
+    edition = "2024",
+    srcs = ["fuzz_targets/normalizer.rs"],
+    deps = FUZZ_DEPS,
+)
+
+native.rust_binary(
+    name = "paseto_verify",
+    crate = "paseto_verify",
+    crate_root = "fuzz_targets/paseto_verify.rs",
+    edition = "2024",
+    srcs = ["fuzz_targets/paseto_verify.rs"],
+    deps = FUZZ_DEPS,
+)
+
+native.rust_binary(
+    name = "capability_seed",
+    crate = "capability_seed",
+    crate_root = "fuzz_targets/capability_seed.rs",
+    edition = "2024",
+    srcs = ["fuzz_targets/capability_seed.rs"],
+    deps = FUZZ_DEPS,
+)
+
+native.rust_binary(
+    name = "capability_seed_toml",
+    crate = "capability_seed_toml",
+    crate_root = "fuzz_targets/capability_seed_toml.rs",
+    edition = "2024",
+    srcs = ["fuzz_targets/capability_seed_toml.rs"],
+    deps = FUZZ_DEPS,
+)
