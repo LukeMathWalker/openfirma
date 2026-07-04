@@ -18,6 +18,7 @@ cargo.rust_binary(
     env = {
         "CARGO_PKG_VERSION": "0.1.2",
     },
+    visibility = ["//tests/e2e:main_test"],
     srcs = glob([
         "src/**/*.rs",
         "templates/**/*",

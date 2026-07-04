@@ -143,7 +143,7 @@ build:
     //crates/firma:firma
 
 e2e:
-  cargo nextest run -p firma --test e2e --run-ignored all
+  buck2 run --target-platforms //platforms:aarch64-apple-darwin //tests/e2e:main_test -- --include-ignored
 
 audit:
   cargo audit --file third-party/Cargo.lock --deny warnings
