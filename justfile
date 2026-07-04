@@ -120,9 +120,22 @@ test:
     //crates/firma:e2e_startup_test \
     //crates/firma:live_capability_e2e_test \
     //crates/firma:child_process_escape_test
-  # Buck2 runs unit + integration tests; it does not run doctests, so those
-  # run separately via Cargo until a Buck rustdoc-test target exists.
-  cargo test --all-features --doc
+  # The Buck Rust prelude exposes doctests through each library's [doc]
+  # subtarget. Keep this explicit so doctests stay separate from unit and
+  # integration tests, matching the old cargo-nextest + cargo-doc split.
+  buck2 test --target-platforms //platforms:aarch64-apple-darwin \
+    '//crates/firma-core:firma_core[doc]' \
+    '//crates/firma-runtime-state:firma_runtime_state[doc]' \
+    '//crates/firma-config-loader:firma_config_loader[doc]' \
+    '//crates/firma-config-loader:firma_config_loader_clap[doc]' \
+    '//crates/firma-config-loader:firma_config_loader_test_utils[doc]' \
+    '//crates/firma-stack:firma_stack[doc]' \
+    '//crates/firma-demo-fixture:firma_demo_fixture_lib[doc]' \
+    '//crates/firma-protobuf:firma_protobuf[doc]' \
+    '//crates/firma-grpc-interceptor-proto:firma_grpc_interceptor_proto[doc]' \
+    '//crates/firma-authority:firma_authority[doc]' \
+    '//crates/firma-sidecar:firma_sidecar[doc]' \
+    '//crates/firma-run:firma_run[doc]'
 
 build:
   buck2 build --target-platforms //platforms:aarch64-apple-darwin \
