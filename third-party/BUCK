@@ -40,6 +40,7 @@ http_archive(
     name = "alloca-0.4.0.crate",
     sha256 = "e5a7d05ea6aea7e9e64d25b9156ba2fee3fdd659e34e41063cd2fc7cd020d7f4",
     strip_prefix = "alloca-0.4.0",
+    sub_targets = ["alloca.c"],
     urls = ["https://static.crates.io/crates/alloca/0.4.0/download"],
     visibility = [],
 )
@@ -58,6 +59,14 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_PATCH": "0",
         "CARGO_PKG_VERSION_PRE": "",
     },
+    visibility = [],
+    deps = [":alloca-0.4-calloca"],
+)
+
+cxx_library(
+    name = "alloca-0.4-calloca",
+    srcs = [":alloca-0.4.0.crate[alloca.c]"],
+    headers = [],
     visibility = [],
 )
 

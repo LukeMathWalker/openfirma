@@ -2,6 +2,19 @@ load("@prelude//:prelude.bzl", "native")
 load("@prelude//rust:cargo_package.bzl", "cargo")
 
 MAPPING_SRCS = glob(["config/mappings/**/*.toml"])
+BENCH_SUPPORT_SRCS = glob([
+    "benches/fixtures/**/*",
+    "benches/support/**/*",
+])
+
+SIDECAR_BENCH_DEPS = [
+    ":firma_sidecar",
+    "//crates/firma-core:firma_core",
+    "//third-party:chrono",
+    "//third-party:criterion",
+    "//third-party:serde_json",
+    "//third-party:tokio",
+]
 
 genrule(
     name = "firma-sidecar-manifest-dir",
@@ -133,4 +146,49 @@ native.rust_test(
         "//third-party:x509-parser",
         "//third-party:xxhash-rust",
     ],
+)
+
+native.rust_binary(
+    name = "revocation_bench",
+    crate = "revocation",
+    crate_root = "benches/revocation.rs",
+    edition = "2024",
+    srcs = ["benches/revocation.rs"],
+    deps = SIDECAR_BENCH_DEPS,
+)
+
+native.rust_binary(
+    name = "cedar_eval_bench",
+    crate = "cedar_eval",
+    crate_root = "benches/cedar_eval.rs",
+    edition = "2024",
+    srcs = ["benches/cedar_eval.rs"] + BENCH_SUPPORT_SRCS,
+    deps = SIDECAR_BENCH_DEPS,
+)
+
+native.rust_binary(
+    name = "bundle_reload_bench",
+    crate = "bundle_reload",
+    crate_root = "benches/bundle_reload.rs",
+    edition = "2024",
+    srcs = ["benches/bundle_reload.rs"] + BENCH_SUPPORT_SRCS,
+    deps = SIDECAR_BENCH_DEPS,
+)
+
+native.rust_binary(
+    name = "stage1_bench",
+    crate = "stage1",
+    crate_root = "benches/stage1.rs",
+    edition = "2024",
+    srcs = ["benches/stage1.rs"],
+    deps = SIDECAR_BENCH_DEPS,
+)
+
+native.rust_binary(
+    name = "pipeline_bench",
+    crate = "pipeline",
+    crate_root = "benches/pipeline.rs",
+    edition = "2024",
+    srcs = ["benches/pipeline.rs"] + BENCH_SUPPORT_SRCS,
+    deps = SIDECAR_BENCH_DEPS,
 )

@@ -164,7 +164,19 @@ fuzz-check:
     '//fuzz:capability_seed_toml[check]'
 
 bench:
-  cargo bench --workspace --no-fail-fast
+  targets=( \
+    //crates/firma-core:paseto_bench \
+    //crates/firma-sidecar:revocation_bench \
+    //crates/firma-sidecar:cedar_eval_bench \
+    //crates/firma-sidecar:bundle_reload_bench \
+    //crates/firma-sidecar:stage1_bench \
+    //crates/firma-sidecar:pipeline_bench \
+  ); \
+  failed=0; \
+  for target in "${targets[@]}"; do \
+    buck2 run --target-platforms //platforms:aarch64-apple-darwin "$target" || failed=1; \
+  done; \
+  exit "$failed"
 
 docs-build:
   cd docs-site && corepack pnpm install --frozen-lockfile --registry=https://registry.npmjs.org/

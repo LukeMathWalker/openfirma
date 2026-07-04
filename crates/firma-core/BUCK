@@ -44,3 +44,17 @@ native.rust_test(
         "//third-party:uuid",
     ],
 )
+
+native.rust_binary(
+    name = "paseto_bench",
+    crate = "paseto",
+    crate_root = "benches/paseto.rs",
+    edition = "2024",
+    srcs = ["benches/paseto.rs"],
+    deps = [
+        ":firma_core",
+        "//third-party:chrono",
+        "//third-party:criterion",
+        "//third-party:pasetors",
+    ],
+)
