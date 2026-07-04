@@ -10,5 +10,9 @@ def system_demo_rust_toolchain():
             "DEFAULT": "x86_64-unknown-linux-gnu",
         }),
         default_edition = "2024",
+        rustc_flags = select({
+            "root//platforms:rust-coverage-enabled-setting": ["-Cinstrument-coverage"],
+            "DEFAULT": [],
+        }),
         visibility = ["PUBLIC"],
     )

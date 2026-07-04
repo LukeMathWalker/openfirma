@@ -1,10 +1,37 @@
 load("@prelude//platforms:defs.bzl", "execution_platform")
 
+constraint_setting(
+    name = "rust-coverage",
+    visibility = ["PUBLIC"],
+)
+
+constraint_value(
+    name = "rust-coverage-enabled",
+    constraint_setting = ":rust-coverage",
+    visibility = ["PUBLIC"],
+)
+
+config_setting(
+    name = "rust-coverage-enabled-setting",
+    constraint_values = [":rust-coverage-enabled"],
+    visibility = ["PUBLIC"],
+)
+
 platform(
     name = "aarch64-apple-darwin",
     constraint_values = [
         "prelude//os/constraints:macos",
         "prelude//cpu/constraints:arm64",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+platform(
+    name = "aarch64-apple-darwin-coverage",
+    constraint_values = [
+        "prelude//os/constraints:macos",
+        "prelude//cpu/constraints:arm64",
+        ":rust-coverage-enabled",
     ],
     visibility = ["PUBLIC"],
 )
