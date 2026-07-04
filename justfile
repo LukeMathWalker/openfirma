@@ -146,10 +146,10 @@ e2e:
   cargo nextest run -p firma --test e2e --run-ignored all
 
 audit:
-  cargo audit --deny warnings
+  cargo audit --file third-party/Cargo.lock --deny warnings
 
 deny:
-  cargo deny check licenses bans sources
+  cargo deny --manifest-path third-party/Cargo.toml --locked check licenses bans sources
 
 check: fmt lint test build audit deny
 
