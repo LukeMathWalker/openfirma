@@ -18,6 +18,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEMO="$ROOT/examples/demo"
 LOG_DIR="$DEMO/logs"
 LOOPBACK_HOST="127.0.0.1"
+BUCK_TARGET_PLATFORM="${BUCK_TARGET_PLATFORM:-$(bash "$ROOT/scripts/buck-target-platform.sh")}"
+BUCK2_BIN="${BUCK2_BIN:-buck2}"
 FIRMA_BIN=""
 FIXTURE_BIN=""
 FIXTURE_CLIENT_BIN=""
@@ -169,7 +171,7 @@ while read -r target output; do
       FIXTURE_CLIENT_BIN="$(abs_path "$output")"
       ;;
   esac
-done < <(cd "$ROOT" && buck2 build --show-output --target-platforms //platforms:aarch64-apple-darwin \
+done < <(cd "$ROOT" && "$BUCK2_BIN" build --show-output --target-platforms "$BUCK_TARGET_PLATFORM" \
   //crates/firma:firma \
   //crates/firma-demo-fixture:firma-demo-fixture \
   //crates/firma-demo-fixture:firma-demo-fixture-client)

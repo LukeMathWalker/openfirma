@@ -5,7 +5,8 @@ def system_demo_rust_toolchain():
         name = "rust",
         rustc_target_triple = select({
             "prelude//os/constraints:linux": "x86_64-unknown-linux-gnu",
-            "prelude//os/constraints:macos": "aarch64-apple-darwin",
+            "root//platforms:macos-arm64": "aarch64-apple-darwin",
+            "root//platforms:macos-x86_64": "x86_64-apple-darwin",
             "prelude//os/constraints:windows": "x86_64-pc-windows-msvc",
             "DEFAULT": "x86_64-unknown-linux-gnu",
         }),

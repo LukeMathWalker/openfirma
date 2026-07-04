@@ -16,11 +16,13 @@ cargo.rust_binary(
     deps = [
         "//third-party:anyhow",
         "//third-party:clap",
-        "//third-party:objc2-virtualization",
         "//third-party:serde",
         "//third-party:serde_json",
         "//third-party:thiserror",
-    ],
+    ] + select({
+        "prelude//os/constraints:macos": ["//third-party:objc2-virtualization"],
+        "DEFAULT": [],
+    }),
 )
 
 native.rust_test(
@@ -38,10 +40,12 @@ native.rust_test(
     deps = [
         "//third-party:anyhow",
         "//third-party:clap",
-        "//third-party:objc2-virtualization",
         "//third-party:serde",
         "//third-party:serde_json",
         "//third-party:tempfile",
         "//third-party:thiserror",
-    ],
+    ] + select({
+        "prelude//os/constraints:macos": ["//third-party:objc2-virtualization"],
+        "DEFAULT": [],
+    }),
 )

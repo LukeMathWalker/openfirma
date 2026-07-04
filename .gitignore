@@ -75,4 +75,5 @@ codecov.json
 .claude/specs/
 
 buck-out
+.buckconfig.local
 third-party/.cargo/

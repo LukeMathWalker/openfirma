@@ -15,6 +15,11 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   e2e:
@@ -36,28 +41,9 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+      - uses: ./.github/actions/setup-buck-just
         with:
-          rustflags: ""
-          cache: false
-
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install cargo-nextest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: command -v cargo-nextest || cargo binstall -y --force --locked cargo-nextest@$CARGO_NEXTEST_VERSION
-        shell: bash
-
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install bubblewrap (Linux)
         if: runner.os == 'Linux'
@@ -92,9 +78,8 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      # nextest builds the firma binary as part of the e2e test; firma_bin()
-      # reads its path from CARGO_BIN_EXE_firma.
       - name: Run e2e tests
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: cargo nextest run -p firma --test e2e --run-ignored all -E 'test(/${{ matrix.agent.name }}::/)'
+          AGENT_FILTER: "${{ matrix.agent.name }}::"
+        run: just e2e "$AGENT_FILTER"

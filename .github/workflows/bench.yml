@@ -8,6 +8,11 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   bench:
@@ -18,21 +23,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+      - uses: ./.github/actions/setup-buck-just
         with:
-          rustflags: ""
-
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bench
-        run: cargo bench --workspace --no-fail-fast -- --quick
+        run: just bench
 
       - name: Upload criterion reports
         if: always()

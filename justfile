@@ -1,4 +1,5 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+set windows-shell := ["C:/Program Files/Git/bin/bash.exe", "-eu", "-o", "pipefail", "-c"]
 
 install: install-system install-cargo-tools install-docs-deps install-tools
   @echo "Dev environment ready. Try 'just check' or 'just docs-dev'."
@@ -24,15 +25,17 @@ fmt:
   dprint check
 
 lint:
+  buck2_bin="${BUCK2_BIN:-buck2}"; \
+  target_platform="${BUCK_TARGET_PLATFORM:-$("${BASH:-bash}" scripts/buck-target-platform.sh)}"; \
   targets=(); \
   while read -r target; do \
     targets+=("$target[clippy.txt]"); \
-  done < <(buck2 uquery 'kind("rust_(binary|library|proc_macro)", //crates/...)'); \
+  done < <("$buck2_bin" uquery 'kind("rust_(binary|library|proc_macro)", //crates/...)'); \
   outputs=(); \
   while read -r target output; do \
     [[ "$target" == root//* ]] || continue; \
     outputs+=("$output"); \
-  done < <(buck2 build --show-output --target-platforms //platforms:aarch64-apple-darwin "${targets[@]}"); \
+  done < <("$buck2_bin" build --show-output --target-platforms "$target_platform" "${targets[@]}"); \
   failed=0; \
   for output in "${outputs[@]}"; do \
     if [[ -s "$output" ]]; then \
@@ -48,23 +51,31 @@ lint:
   fi
 
 test:
-  mapfile -t test_targets < <(buck2 uquery 'kind("rust_test", //crates/...)'); \
-  buck2 test --target-platforms //platforms:aarch64-apple-darwin "${test_targets[@]}"
+  buck2_bin="${BUCK2_BIN:-buck2}"; \
+  target_platform="${BUCK_TARGET_PLATFORM:-$("${BASH:-bash}" scripts/buck-target-platform.sh)}"; \
+  mapfile -t test_targets < <("$buck2_bin" uquery 'kind("rust_test", //crates/...)'); \
+  "$buck2_bin" test --target-platforms "$target_platform" "${test_targets[@]}"
   # The Buck Rust prelude exposes doctests through each library's [doc]
   # subtarget. Keep them separate from unit and
   # integration tests, matching the old cargo-nextest + cargo-doc split.
+  buck2_bin="${BUCK2_BIN:-buck2}"; \
   doc_targets=(); \
   while read -r target; do \
     doc_targets+=("$target[doc]"); \
-  done < <(buck2 uquery 'kind("rust_library", //crates/...)'); \
-  buck2 test --target-platforms //platforms:aarch64-apple-darwin "${doc_targets[@]}"
+  done < <("$buck2_bin" uquery 'kind("rust_library", //crates/...)'); \
+  target_platform="${BUCK_TARGET_PLATFORM:-$("${BASH:-bash}" scripts/buck-target-platform.sh)}"; \
+  "$buck2_bin" test --target-platforms "$target_platform" "${doc_targets[@]}"
 
 build:
-  mapfile -t targets < <(buck2 uquery 'kind("rust_(binary|library|proc_macro)", //crates/...)'); \
-  buck2 build --target-platforms //platforms:aarch64-apple-darwin "${targets[@]}"
+  buck2_bin="${BUCK2_BIN:-buck2}"; \
+  target_platform="${BUCK_TARGET_PLATFORM:-$("${BASH:-bash}" scripts/buck-target-platform.sh)}"; \
+  mapfile -t targets < <("$buck2_bin" uquery 'kind("rust_(binary|library|proc_macro)", //crates/...)'); \
+  "$buck2_bin" build --target-platforms "$target_platform" "${targets[@]}"
 
-e2e:
-  buck2 run --target-platforms //platforms:aarch64-apple-darwin //tests/e2e:main_test -- --include-ignored
+e2e *args:
+  buck2_bin="${BUCK2_BIN:-buck2}"; \
+  target_platform="${BUCK_TARGET_PLATFORM:-$("${BASH:-bash}" scripts/buck-target-platform.sh)}"; \
+  "$buck2_bin" run --target-platforms "$target_platform" //tests/e2e:main_test -- --include-ignored {{args}}
 
 audit:
   cargo audit --file third-party/Cargo.lock --deny warnings
@@ -72,10 +83,15 @@ audit:
 deny:
   cargo deny --manifest-path third-party/Cargo.toml --locked check licenses bans sources
 
-check: fmt lint test build audit deny
+reindeer-check:
+  reindeer buckify --stdout | diff -u third-party/BUCK -
+
+check: fmt lint test build audit deny reindeer-check
 
 coverage:
-  mapfile -t targets < <(buck2 uquery 'kind("rust_test", //crates/...)'); \
+  buck2_bin="${BUCK2_BIN:-buck2}"; \
+  coverage_target_platform="${BUCK_COVERAGE_TARGET_PLATFORM:-$("${BASH:-bash}" scripts/buck-target-platform.sh --coverage)}"; \
+  mapfile -t targets < <("$buck2_bin" uquery 'kind("rust_test", //crates/...)'); \
   llvm_profdata="${LLVM_PROFDATA:-}"; \
   if [[ -z "$llvm_profdata" ]]; then llvm_profdata="$(command -v llvm-profdata || true)"; fi; \
   if [[ -z "$llvm_profdata" ]] && command -v xcrun >/dev/null 2>&1; then llvm_profdata="$(xcrun --find llvm-profdata)"; fi; \
@@ -93,8 +109,8 @@ coverage:
   while read -r target output; do \
     [[ "$target" == root//* ]] || continue; \
     objects+=("$output"); \
-  done < <(buck2 build --show-output --target-platforms //platforms:aarch64-apple-darwin-coverage "${targets[@]}"); \
-  buck2 test --target-platforms //platforms:aarch64-apple-darwin-coverage "${targets[@]}" -- --env LLVM_PROFILE_FILE="$profile_dir/%m-%p.profraw"; \
+  done < <("$buck2_bin" build --show-output --target-platforms "$coverage_target_platform" "${targets[@]}"); \
+  "$buck2_bin" test --target-platforms "$coverage_target_platform" "${targets[@]}" -- --env LLVM_PROFILE_FILE="$profile_dir/%m-%p.profraw"; \
   shopt -s nullglob; \
   profiles=("$profile_dir"/*.profraw); \
   if [[ "${#profiles[@]}" -eq 0 ]]; then printf 'no coverage profiles were produced\n' >&2; exit 1; fi; \
@@ -105,13 +121,17 @@ coverage:
   printf 'Coverage written to %s\n' "$coverage_dir/lcov.info"
 
 fuzz-check:
-  buck2 build --target-platforms //platforms:aarch64-apple-darwin \
+  buck2_bin="${BUCK2_BIN:-buck2}"; \
+  target_platform="${BUCK_TARGET_PLATFORM:-$("${BASH:-bash}" scripts/buck-target-platform.sh)}"; \
+  "$buck2_bin" build --target-platforms "$target_platform" \
     '//fuzz:normalizer[check]' \
     '//fuzz:paseto_verify[check]' \
     '//fuzz:capability_seed[check]' \
     '//fuzz:capability_seed_toml[check]'
 
 bench:
+  buck2_bin="${BUCK2_BIN:-buck2}"; \
+  target_platform="${BUCK_TARGET_PLATFORM:-$("${BASH:-bash}" scripts/buck-target-platform.sh)}"; \
   targets=( \
     //crates/firma-core:paseto_bench \
     //crates/firma-sidecar:revocation_bench \
@@ -122,7 +142,7 @@ bench:
   ); \
   failed=0; \
   for target in "${targets[@]}"; do \
-    buck2 run --target-platforms //platforms:aarch64-apple-darwin "$target" || failed=1; \
+    "$buck2_bin" run --target-platforms "$target_platform" "$target" || failed=1; \
   done; \
   exit "$failed"
 
