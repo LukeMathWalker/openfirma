@@ -15833,8 +15833,40 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_MINOR": "52",
         "CARGO_PKG_VERSION_PATCH": "6",
         "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :windows_x86_64_msvc-0.52-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :windows_x86_64_msvc-0.52-build-script-run[rustc_flags])"],
+    visibility = [],
+)
+
+cargo.rust_binary(
+    name = "windows_x86_64_msvc-0.52-build-script-build",
+    srcs = [":windows_x86_64_msvc-0.52.6.crate"],
+    crate = "build_script_build",
+    crate_root = "windows_x86_64_msvc-0.52.6.crate/build.rs",
+    edition = "2021",
+    env = {
+        "CARGO_PKG_NAME": "windows_x86_64_msvc",
+        "CARGO_PKG_VERSION": "0.52.6",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "52",
+        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PRE": "",
     },
     visibility = [],
+)
+
+buildscript_run(
+    name = "windows_x86_64_msvc-0.52-build-script-run",
+    package_name = "windows_x86_64_msvc",
+    buildscript_rule = ":windows_x86_64_msvc-0.52-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "52",
+        "CARGO_PKG_VERSION_PATCH": "6",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    version = "0.52.6",
 )
 
 http_archive(
@@ -15858,8 +15890,40 @@ cargo.rust_library(
         "CARGO_PKG_VERSION_MINOR": "53",
         "CARGO_PKG_VERSION_PATCH": "1",
         "CARGO_PKG_VERSION_PRE": "",
+        "OUT_DIR": "$(location :windows_x86_64_msvc-0.53-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :windows_x86_64_msvc-0.53-build-script-run[rustc_flags])"],
+    visibility = [],
+)
+
+cargo.rust_binary(
+    name = "windows_x86_64_msvc-0.53-build-script-build",
+    srcs = [":windows_x86_64_msvc-0.53.1.crate"],
+    crate = "build_script_build",
+    crate_root = "windows_x86_64_msvc-0.53.1.crate/build.rs",
+    edition = "2021",
+    env = {
+        "CARGO_PKG_NAME": "windows_x86_64_msvc",
+        "CARGO_PKG_VERSION": "0.53.1",
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "53",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
     },
     visibility = [],
+)
+
+buildscript_run(
+    name = "windows_x86_64_msvc-0.53-build-script-run",
+    package_name = "windows_x86_64_msvc",
+    buildscript_rule = ":windows_x86_64_msvc-0.53-build-script-build",
+    env = {
+        "CARGO_PKG_VERSION_MAJOR": "0",
+        "CARGO_PKG_VERSION_MINOR": "53",
+        "CARGO_PKG_VERSION_PATCH": "1",
+        "CARGO_PKG_VERSION_PRE": "",
+    },
+    version = "0.53.1",
 )
 
 http_archive(
