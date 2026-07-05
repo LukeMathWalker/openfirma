@@ -39,7 +39,8 @@ build:
   cargo build --all-features --all-targets
 
 bazel-build:
-  bazel {{bazel_startup_flags}} build {{bazel_flags}} //...
+  bazel {{bazel_startup_flags}} query {{bazel_flags}} 'kind("rust_(library|binary) rule", //...) except tests(//...)' | \
+    xargs bazel {{bazel_startup_flags}} build {{bazel_flags}}
 
 bazel-test:
   bazel {{bazel_startup_flags}} test {{bazel_flags}} //...

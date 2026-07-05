@@ -2,10 +2,12 @@
 
 use std::process::Command;
 
+mod support;
+
 #[test]
 fn empty_runtime_dir_lists_nothing_and_exits_zero() {
     let tmp = tempfile::tempdir().expect("tempdir");
-    let out = Command::new(env!("CARGO_BIN_EXE_firma"))
+    let out = Command::new(support::firma_bin())
         .args(["sidecar", "status"])
         .env("FIRMA_STATE_DIR", tmp.path())
         .output()
@@ -23,7 +25,7 @@ fn empty_runtime_dir_lists_nothing_and_exits_zero() {
 #[test]
 fn json_mode_emits_array() {
     let tmp = tempfile::tempdir().expect("tempdir");
-    let out = Command::new(env!("CARGO_BIN_EXE_firma"))
+    let out = Command::new(support::firma_bin())
         .args(["sidecar", "status", "--json"])
         .env("FIRMA_STATE_DIR", tmp.path())
         .output()

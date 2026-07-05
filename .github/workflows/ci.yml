@@ -38,10 +38,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-        with:
-          rustflags: ""
-
       - name: Load tool versions
         shell: bash
         run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
@@ -54,7 +50,7 @@ jobs:
         shell: bash
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
-          bazel version
+          bazel ${BAZEL_STARTUP_FLAGS:-} version
       - name: Configure BuildBuddy
         env:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
@@ -69,8 +65,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          command -v just || cargo binstall -y --force --locked just@$JUST_VERSION
-          command -v cargo-audit || cargo binstall -y --force --locked cargo-audit@$CARGO_AUDIT_VERSION
+          command -v just || cargo-binstall -y --force --locked just@$JUST_VERSION
+          command -v cargo-audit || cargo-binstall -y --force --locked cargo-audit@$CARGO_AUDIT_VERSION
         shell: bash
 
       - name: Run Bazel audit
@@ -109,10 +105,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-        with:
-          rustflags: ""
-
       - name: Load tool versions
         shell: bash
         run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
@@ -125,7 +117,7 @@ jobs:
         shell: bash
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
-          bazel version
+          bazel ${BAZEL_STARTUP_FLAGS:-} version
       - name: Configure BuildBuddy
         env:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
@@ -140,8 +132,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          command -v just || cargo binstall -y --force --locked just@$JUST_VERSION
-          command -v cargo-deny || cargo binstall -y --force --locked cargo-deny@$CARGO_DENY_VERSION
+          command -v just || cargo-binstall -y --force --locked just@$JUST_VERSION
+          command -v cargo-deny || cargo-binstall -y --force --locked cargo-deny@$CARGO_DENY_VERSION
         shell: bash
 
       - name: Run Bazel deny
@@ -298,10 +290,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-        with:
-          rustflags: ""
-
       - name: Load tool versions
         shell: bash
         run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
@@ -332,7 +320,7 @@ jobs:
         shell: bash
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
-          bazel version
+          bazel ${BAZEL_STARTUP_FLAGS:-} version
       - name: Configure BuildBuddy
         env:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
@@ -346,7 +334,7 @@ jobs:
       - name: Install Bazel check tools
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: command -v just || cargo binstall -y --force --locked just@$JUST_VERSION
+        run: command -v just || cargo-binstall -y --force --locked just@$JUST_VERSION
         shell: bash
 
       - name: Bazel Build
@@ -361,7 +349,16 @@ jobs:
         id: bazel_test
         continue-on-error: true
         shell: bash
-        run: BAZEL_FLAGS="${BAZEL_FLAGS:-} --test_output=errors" just bazel-test
+        run: |
+          if [[ "$RUNNER_OS" == 'Windows' ]]; then
+            # rules_rust 0.71.3 Windows/Bzlmod doctest runners cannot locate
+            # process_wrapper.exe through runfiles. Keep Windows Bazel unit and
+            # integration coverage, but leave Bazel doctests to Unix runners.
+            bazel ${BAZEL_STARTUP_FLAGS:-} query ${BAZEL_FLAGS:-} 'tests(//...) except kind("rust_doc_test rule", //...)' |
+              xargs bazel ${BAZEL_STARTUP_FLAGS:-} test ${BAZEL_FLAGS:-} --test_output=errors
+          else
+            BAZEL_FLAGS="${BAZEL_FLAGS:-} --test_output=errors" just bazel-test
+          fi
 
       - name: Fail if any Bazel verification step failed
         if: ${{ steps.bazel_build.outcome == 'failure' || steps.bazel_clippy.outcome == 'failure' || steps.bazel_test.outcome == 'failure' }}
@@ -453,10 +450,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-        with:
-          rustflags: ""
-
       - name: Load tool versions
         shell: bash
         run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
@@ -483,7 +476,7 @@ jobs:
         shell: bash
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
-          bazel version
+          bazel ${BAZEL_STARTUP_FLAGS:-} version
       - name: Configure BuildBuddy
         env:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
@@ -497,7 +490,7 @@ jobs:
       - name: Install just
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: command -v just || cargo binstall -y --force --locked just@$JUST_VERSION
+        run: command -v just || cargo-binstall -y --force --locked just@$JUST_VERSION
         shell: bash
 
       - name: Generate Bazel coverage

@@ -4,7 +4,7 @@ load("@rules_rust//rust:defs.bzl", "rust_test")
 def cargo_integration_test(name, src, deps = [], data = [], args = [], env = {}, rustc_env = {}):
     rust_test(
         name = name,
-        srcs = [src],
+        srcs = [src] + native.glob(["tests/support/**/*.rs"], allow_empty = True),
         aliases = aliases(
             normal = True,
             normal_dev = True,
@@ -13,6 +13,7 @@ def cargo_integration_test(name, src, deps = [], data = [], args = [], env = {},
         ),
         args = args,
         crate_name = name,
+        crate_root = src,
         data = data,
         deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + deps,
         edition = crate_edition(),

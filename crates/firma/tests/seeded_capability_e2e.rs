@@ -19,13 +19,10 @@ use firma_config_loader::CONFIG_FILE_NAME;
 use firma_sidecar::config::CapabilitySeedConfig;
 use firma_sidecar::startup::{build_token_verifier, load_capability_map};
 
+mod support;
+
 fn firma_bin() -> PathBuf {
-    let path = PathBuf::from(env!("CARGO_BIN_EXE_firma"));
-    if path.is_absolute() {
-        path
-    } else {
-        std::env::current_dir().expect("test cwd").join(path)
-    }
+    support::firma_bin()
 }
 
 #[test]

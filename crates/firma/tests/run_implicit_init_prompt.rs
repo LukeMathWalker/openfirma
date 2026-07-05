@@ -18,13 +18,10 @@ use std::process::{Command, Stdio};
 
 use firma_config_loader::CONFIG_DIR_NAME;
 
+mod support;
+
 fn firma_bin() -> PathBuf {
-    let path = PathBuf::from(env!("CARGO_BIN_EXE_firma"));
-    if path.is_absolute() {
-        path
-    } else {
-        std::env::current_dir().expect("test cwd").join(path)
-    }
+    support::firma_bin()
 }
 
 /// Run `firma run codex` in `cwd` with stdin redirected from /dev/null

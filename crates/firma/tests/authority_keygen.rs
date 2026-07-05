@@ -12,6 +12,8 @@
     reason = "test code: panics are acceptable test failures"
 )]
 
+mod support;
+
 #[test]
 fn generate_key_writes_both_files() {
     let tmp = tempfile::tempdir().unwrap();
@@ -104,7 +106,7 @@ fn generate_key_refuses_to_overwrite_existing_pub_file() {
 }
 
 fn firma_bin() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    support::firma_bin()
 }
 
 fn generate_key(path: &std::path::Path) -> std::process::Output {

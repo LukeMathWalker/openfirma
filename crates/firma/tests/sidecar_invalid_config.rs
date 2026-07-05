@@ -20,8 +20,10 @@ use std::process::{Command, Stdio};
 
 use firma_config_loader::CONFIG_FILE_NAME;
 
+mod support;
+
 fn firma_bin() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    support::firma_bin()
 }
 
 fn write_config(toml_body: &str) -> (tempfile::TempDir, PathBuf) {

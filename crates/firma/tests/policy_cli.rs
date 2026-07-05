@@ -16,16 +16,54 @@
 use std::path::PathBuf;
 use std::process::Command;
 
+mod support;
+
 /// Absolute path to a testdata file under `tests/testdata/policy/`.
 fn testdata(rel: &str) -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let cargo_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/testdata/policy")
-        .join(rel)
+        .join(rel);
+    if cargo_path.exists() {
+        return cargo_path;
+    }
+
+    let logical_path = format!("crates/firma/tests/testdata/policy/{rel}");
+    bazel_runfile(&logical_path).unwrap_or_else(|| PathBuf::from(logical_path))
+}
+
+fn bazel_runfile(logical_path: &str) -> Option<PathBuf> {
+    let candidates = [
+        logical_path.to_string(),
+        format!("_main/{logical_path}"),
+        format!("openfirma/{logical_path}"),
+    ];
+
+    if let Some(runfiles_dir) = std::env::var_os("RUNFILES_DIR") {
+        let runfiles_dir = PathBuf::from(runfiles_dir);
+        for candidate in &candidates {
+            let path = runfiles_dir.join(candidate);
+            if path.exists() {
+                return Some(path);
+            }
+        }
+    }
+
+    let manifest = std::env::var("RUNFILES_MANIFEST_FILE").ok()?;
+    let manifest = std::fs::read_to_string(manifest).ok()?;
+    for line in manifest.lines() {
+        let Some((key, value)) = line.split_once(' ') else {
+            continue;
+        };
+        if candidates.iter().any(|candidate| candidate == key) {
+            return Some(PathBuf::from(value));
+        }
+    }
+    None
 }
 
 #[test]
 fn validate_good_policy_exits_zero_with_ok() {
-    let out = Command::new(env!("CARGO_BIN_EXE_firma"))
+    let out = Command::new(support::firma_bin())
         .args(["policy", "validate"])
         .arg(testdata("good.cedar"))
         .output()
@@ -43,7 +81,7 @@ fn validate_good_policy_exits_zero_with_ok() {
 
 #[test]
 fn validate_bad_policy_exits_nonzero_with_line_and_column() {
-    let out = Command::new(env!("CARGO_BIN_EXE_firma"))
+    let out = Command::new(support::firma_bin())
         .args(["policy", "validate"])
         .arg(testdata("bad.cedar"))
         .output()
@@ -86,7 +124,7 @@ fn validate_bad_policy_exits_nonzero_with_line_and_column() {
 
 #[test]
 fn test_allow_fixture_exits_zero_with_allow() {
-    let out = Command::new(env!("CARGO_BIN_EXE_firma"))
+    let out = Command::new(support::firma_bin())
         .args(["policy", "test"])
         .arg(testdata("allow.toml"))
         .output()
@@ -107,7 +145,7 @@ fn test_allow_fixture_exits_zero_with_allow() {
 
 #[test]
 fn test_deny_mismatch_fixture_exits_nonzero() {
-    let out = Command::new(env!("CARGO_BIN_EXE_firma"))
+    let out = Command::new(support::firma_bin())
         .args(["policy", "test"])
         .arg(testdata("deny_mismatch.toml"))
         .output()

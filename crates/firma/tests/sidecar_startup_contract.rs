@@ -23,6 +23,8 @@ use std::time::{Duration, Instant};
 
 use firma_config_loader::CONFIG_FILE_NAME;
 
+mod support;
+
 const CONTRACT_PREFIXES: &[&str] = &[
     "config loaded",
     "mapping table loaded",
@@ -48,7 +50,7 @@ fn pick_free_port() -> u16 {
 }
 
 fn firma_bin() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    support::firma_bin()
 }
 
 #[test]

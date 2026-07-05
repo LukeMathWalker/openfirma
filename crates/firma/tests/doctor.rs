@@ -11,12 +11,12 @@ use std::process::Command;
 
 use serde_json::Value;
 
+mod support;
+
 #[test]
 fn doctor_json_emits_valid_envelope() {
     let tmp = tempfile::tempdir().expect("tempdir");
-    let bin = std::path::PathBuf::from(env!("CARGO_BIN_EXE_firma"));
-
-    let output = Command::new(&bin)
+    let output = Command::new(support::firma_bin())
         .args(["doctor", "--json", "--state-dir"])
         .arg(tmp.path())
         .args(["--timeout-ms", "250"])

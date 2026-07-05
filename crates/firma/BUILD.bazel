@@ -53,7 +53,11 @@ rust_test(
 
 rust_test(
     name = "cli_help_test",
-    srcs = ["tests/cli_help.rs"],
+    srcs = [
+        "tests/cli_help.rs",
+        "tests/support/mod.rs",
+    ],
+    crate_root = "tests/cli_help.rs",
     aliases = aliases(
         normal = True,
         normal_dev = True,
@@ -71,7 +75,11 @@ rust_test(
 
 rust_test(
     name = "cli_parsing_test",
-    srcs = ["tests/cli_parsing.rs"],
+    srcs = [
+        "tests/cli_parsing.rs",
+        "tests/support/mod.rs",
+    ],
+    crate_root = "tests/cli_parsing.rs",
     aliases = aliases(
         normal = True,
         normal_dev = True,
@@ -91,7 +99,11 @@ rust_test(
 
 rust_test(
     name = "sidecar_status_cli_test",
-    srcs = ["tests/sidecar_status_cli.rs"],
+    srcs = [
+        "tests/sidecar_status_cli.rs",
+        "tests/support/mod.rs",
+    ],
+    crate_root = "tests/sidecar_status_cli.rs",
     aliases = aliases(
         normal = True,
         normal_dev = True,

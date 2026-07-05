@@ -21,5 +21,5 @@ build:buildbuddy --experimental_profile_include_target_label
 build:buildbuddy --experimental_profile_include_primary_output
 common:buildbuddy --remote_cache=grpcs://remote.buildbuddy.io
 common:buildbuddy --remote_cache_compression
-common:buildbuddy --remote_download_toplevel
+common:buildbuddy --remote_download_minimal
 common:buildbuddy --remote_timeout=10m

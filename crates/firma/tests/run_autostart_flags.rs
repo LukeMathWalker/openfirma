@@ -10,8 +10,10 @@
 
 use std::process::Command;
 
+mod support;
+
 fn firma_bin() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    support::firma_bin()
 }
 
 #[test]

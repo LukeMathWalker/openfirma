@@ -15,13 +15,10 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
+mod support;
+
 fn firma_bin() -> PathBuf {
-    let path = PathBuf::from(env!("CARGO_BIN_EXE_firma"));
-    if path.is_absolute() {
-        path
-    } else {
-        std::env::current_dir().expect("test cwd").join(path)
-    }
+    support::firma_bin()
 }
 
 struct IssuedSeed {

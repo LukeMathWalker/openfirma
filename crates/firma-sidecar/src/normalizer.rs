@@ -389,6 +389,7 @@ mod tests {
     use super::*;
     use crate::config::{MappingRuleConfig, MappingRulesFile};
     use crate::enforcement::registry::ActionClassRegistry;
+    use std::path::PathBuf;
 
     fn test_normalizer() -> IntentNormalizer {
         let registry = ActionClassRegistry::v0_1();
@@ -428,6 +429,49 @@ mod tests {
             body: None,
             is_https: true,
         }
+    }
+
+    fn runfile_path(logical_path: &str) -> Option<PathBuf> {
+        let candidates = [
+            logical_path.to_string(),
+            format!("_main/{logical_path}"),
+            format!("openfirma/{logical_path}"),
+        ];
+
+        if let Some(runfiles_dir) = std::env::var_os("RUNFILES_DIR") {
+            let runfiles_dir = PathBuf::from(runfiles_dir);
+            for candidate in &candidates {
+                let path = runfiles_dir.join(candidate);
+                if path.is_file() {
+                    return Some(path);
+                }
+            }
+        }
+
+        let manifest = std::env::var("RUNFILES_MANIFEST_FILE").ok()?;
+        let manifest = std::fs::read_to_string(manifest).ok()?;
+        for line in manifest.lines() {
+            let Some((key, value)) = line.split_once(' ') else {
+                continue;
+            };
+            if candidates.iter().any(|candidate| candidate == key) {
+                return Some(PathBuf::from(value));
+            }
+        }
+        None
+    }
+
+    fn mapping_file_path(filename: &str) -> PathBuf {
+        let source_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("config")
+            .join("mappings")
+            .join(filename);
+        if source_path.is_file() {
+            return source_path;
+        }
+
+        let logical_path = format!("crates/firma-sidecar/config/mappings/{filename}");
+        runfile_path(&logical_path).unwrap_or_else(|| panic!("locate Bazel runfile {logical_path}"))
     }
 
     #[test]
@@ -482,11 +526,7 @@ mod tests {
     }
 
     fn load_mapping_file(filename: &str) -> MappingRulesFile {
-        let path = format!(
-            "{}/config/mappings/{}",
-            env!("CARGO_MANIFEST_DIR"),
-            filename
-        );
+        let path = mapping_file_path(filename);
         let src = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {filename}: {e}"));
         let file: MappingRulesFile =
             toml::from_str(&src).unwrap_or_else(|e| panic!("parse {filename}: {e}"));
@@ -826,7 +866,7 @@ mod tests {
 
     #[test]
     fn test_github_mapping_file_loads_and_has_46_rules() {
-        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/config/mappings/github.toml");
+        let path = mapping_file_path("github.toml");
         let src = std::fs::read_to_string(path).unwrap_or_else(|e| panic!("read: {e}"));
         let file: MappingRulesFile = toml::from_str(&src).unwrap_or_else(|e| panic!("parse: {e}"));
         file.validate().unwrap_or_else(|e| panic!("validate: {e}"));

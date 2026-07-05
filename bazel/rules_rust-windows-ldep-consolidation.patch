@@ -1,18 +1,3 @@
-diff --git a/rust/private/rustdoc/rustdoc_test_writer.rs b/rust/private/rustdoc/rustdoc_test_writer.rs
---- a/rust/private/rustdoc/rustdoc_test_writer.rs
-+++ b/rust/private/rustdoc/rustdoc_test_writer.rs
-@@ -224,6 +224,11 @@
-             strip_substrings
-                 .iter()
-                 .for_each(|substring| stripped_arg = stripped_arg.replace(substring, ""));
-+            if let Some(runfile_path) = stripped_arg.strip_prefix("../") {
-+                // Under Bzlmod on Windows, external runfiles are exposed under
-+                // `_main/external/<repo>` rather than as siblings of `_main`.
-+                stripped_arg = format!("../external/{runfile_path}");
-+            }
-             stripped_arg
-         })
-         .map(|arg| format!("'{arg}'"))
 diff --git a/util/process_wrapper/options.rs b/util/process_wrapper/options.rs
 --- a/util/process_wrapper/options.rs
 +++ b/util/process_wrapper/options.rs
