@@ -15816,6 +15816,7 @@ http_archive(
     name = "windows_x86_64_msvc-0.52.6.crate",
     sha256 = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec",
     strip_prefix = "windows_x86_64_msvc-0.52.6",
+    sub_targets = ["lib/windows.0.52.0.lib"],
     urls = ["https://static.crates.io/crates/windows_x86_64_msvc/0.52.6/download"],
     visibility = [],
 )
@@ -15837,6 +15838,7 @@ cargo.rust_library(
     },
     rustc_flags = ["@$(location :windows_x86_64_msvc-0.52-build-script-run[rustc_flags])"],
     visibility = [],
+    deps = [":windows_x86_64_msvc-0.52-windows_import_lib-windows.0.52.0.lib"],
 )
 
 cargo.rust_binary(
@@ -15869,10 +15871,17 @@ buildscript_run(
     version = "0.52.6",
 )
 
+prebuilt_cxx_library(
+    name = "windows_x86_64_msvc-0.52-windows_import_lib-windows.0.52.0.lib",
+    static_lib = ":windows_x86_64_msvc-0.52.6.crate[lib/windows.0.52.0.lib]",
+    visibility = [],
+)
+
 http_archive(
     name = "windows_x86_64_msvc-0.53.1.crate",
     sha256 = "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650",
     strip_prefix = "windows_x86_64_msvc-0.53.1",
+    sub_targets = ["lib/windows.0.53.0.lib"],
     urls = ["https://static.crates.io/crates/windows_x86_64_msvc/0.53.1/download"],
     visibility = [],
 )
@@ -15894,6 +15903,7 @@ cargo.rust_library(
     },
     rustc_flags = ["@$(location :windows_x86_64_msvc-0.53-build-script-run[rustc_flags])"],
     visibility = [],
+    deps = [":windows_x86_64_msvc-0.53-windows_import_lib-windows.0.53.0.lib"],
 )
 
 cargo.rust_binary(
@@ -15924,6 +15934,12 @@ buildscript_run(
         "CARGO_PKG_VERSION_PRE": "",
     },
     version = "0.53.1",
+)
+
+prebuilt_cxx_library(
+    name = "windows_x86_64_msvc-0.53-windows_import_lib-windows.0.53.0.lib",
+    static_lib = ":windows_x86_64_msvc-0.53.1.crate[lib/windows.0.53.0.lib]",
+    visibility = [],
 )
 
 http_archive(
