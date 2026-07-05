@@ -56,6 +56,18 @@ jobs:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
         run: ./scripts/ci/configure-buildbuddy.sh
         shell: bash
+      - name: Restore Bazel repository cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ${{ runner.temp }}/bazel-repository-cache
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
+          restore-keys: |
+            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
+            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
+      - name: Configure Bazel repository cache
+        run: ./scripts/ci/configure-bazel-repository-cache.sh
+        shell: bash
 
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
@@ -122,6 +134,18 @@ jobs:
         env:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
         run: ./scripts/ci/configure-buildbuddy.sh
+        shell: bash
+      - name: Restore Bazel repository cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ${{ runner.temp }}/bazel-repository-cache
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
+          restore-keys: |
+            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
+            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
+      - name: Configure Bazel repository cache
+        run: ./scripts/ci/configure-bazel-repository-cache.sh
         shell: bash
 
       - name: Install cargo-binstall
@@ -326,6 +350,18 @@ jobs:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
         run: ./scripts/ci/configure-buildbuddy.sh
         shell: bash
+      - name: Restore Bazel repository cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ${{ runner.temp }}/bazel-repository-cache
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
+          restore-keys: |
+            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
+            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
+      - name: Configure Bazel repository cache
+        run: ./scripts/ci/configure-bazel-repository-cache.sh
+        shell: bash
 
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
@@ -481,6 +517,18 @@ jobs:
         env:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
         run: ./scripts/ci/configure-buildbuddy.sh
+        shell: bash
+      - name: Restore Bazel repository cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ${{ runner.temp }}/bazel-repository-cache
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
+          restore-keys: |
+            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
+            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
+      - name: Configure Bazel repository cache
+        run: ./scripts/ci/configure-bazel-repository-cache.sh
         shell: bash
 
       - name: Install cargo-binstall
