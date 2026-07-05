@@ -17,6 +17,7 @@ genrule(
     srcs = PROTO_SRCS,
     out = "manifest_dir",
     cmd = "mkdir -p $OUT/proto/firma/v1 && cp $SRCS $OUT/proto/firma/v1/",
+    cmd_exe = "python -c \"import os, pathlib, shutil; out = pathlib.Path(os.environ['OUT']) / 'proto' / 'firma' / 'v1'; out.mkdir(parents=True, exist_ok=True); [shutil.copy2(src, out / pathlib.Path(src).name) for src in os.environ['SRCS'].split()]\"",
 )
 
 cargo.rust_library(

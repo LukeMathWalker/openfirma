@@ -21,6 +21,7 @@ genrule(
     srcs = MAPPING_SRCS,
     out = "manifest_dir",
     cmd = "mkdir -p $OUT/config/mappings && cp $SRCS $OUT/config/mappings/",
+    cmd_exe = "python -c \"import os, pathlib, shutil; out = pathlib.Path(os.environ['OUT']) / 'config' / 'mappings'; out.mkdir(parents=True, exist_ok=True); [shutil.copy2(src, out / pathlib.Path(src).name) for src in os.environ['SRCS'].split()]\"",
 )
 
 cargo.rust_library(

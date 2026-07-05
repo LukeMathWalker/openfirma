@@ -8,6 +8,7 @@ genrule(
     srcs = POLICY_TESTDATA_SRCS,
     out = "manifest_dir",
     cmd = "mkdir -p $OUT/tests/testdata/policy && for src in $SRCS; do rel=${src#*tests/testdata/policy/}; dir=${rel%/*}; if [ $dir = $rel ]; then dir=.; fi; mkdir -p $OUT/tests/testdata/policy/$dir; cp $src $OUT/tests/testdata/policy/$rel; done",
+    cmd_exe = "python -c \"import os, pathlib, shutil; out = pathlib.Path(os.environ['OUT']) / 'tests' / 'testdata' / 'policy'; [((out / pathlib.Path(*pathlib.PureWindowsPath(src).parts[pathlib.PureWindowsPath(src).parts.index('policy') + 1:])).parent.mkdir(parents=True, exist_ok=True), shutil.copy2(src, out / pathlib.Path(*pathlib.PureWindowsPath(src).parts[pathlib.PureWindowsPath(src).parts.index('policy') + 1:]))) for src in os.environ['SRCS'].split()]\"",
 )
 
 cargo.rust_binary(
