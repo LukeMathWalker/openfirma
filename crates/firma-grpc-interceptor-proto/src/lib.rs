@@ -21,6 +21,7 @@
 #![allow(clippy::trivially_copy_pass_by_ref)]
 #![allow(clippy::wildcard_imports)]
 
+#[cfg(not(bazel))]
 pub mod firma {
     pub mod interceptor {
         pub mod v1 {
@@ -29,6 +30,15 @@ pub mod firma {
                 reason = "prost/tonic emits outer #[allow(...)] attributes in generated Rust"
             )]
             tonic::include_proto!("firma.interceptor.v1");
+        }
+    }
+}
+
+#[cfg(bazel)]
+pub mod firma {
+    pub mod interceptor {
+        pub mod v1 {
+            pub use firma_interceptor_v1_proto::firma::interceptor::v1::*;
         }
     }
 }

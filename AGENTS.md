@@ -21,10 +21,28 @@ Bazel support is additive during the migration. Keep `Cargo.toml` and
 verify Bazel targets that have been ported. Do not replace `just check` until
 the Bazel graph reaches full build, test, lint, docs, audit, and deny parity.
 
-Requires `protoc` installed for protobuf compilation (`firma-protobuf` and
-`firma-grpc-interceptor-proto` both compile `.proto` files via
-`tonic-prost-build` against a system `protoc`). Bazel preserves that contract
-for now by passing the caller `PATH` through to build-script actions.
+Cargo-native protobuf compilation still requires `protoc` installed:
+`firma-protobuf` and `firma-grpc-interceptor-proto` both compile `.proto` files
+via `tonic-prost-build` against a system `protoc`. Bazel builds those protobuf
+crates with hermetic `rules_rust_prost` targets instead of Cargo build scripts.
+
+Bazel dependency state uses separate lockfiles:
+
+- `Cargo.Bazel.lock` renders the main Cargo workspace for Bazel from
+  `Cargo.toml` and `Cargo.lock`.
+- `Cargo.Prost.lock` locks Bazel-only protobuf codegen tool resolution.
+- `Cargo.Prost.Bazel.lock` renders those protobuf codegen tools for Bazel.
+- `MODULE.bazel.lock` locks Bzlmod module resolution.
+
+Do not add `protoc-gen-prost` or `protoc-gen-tonic` to `Cargo.lock` unless they
+become real Cargo-native dependencies. After changing Cargo/Bazel dependency
+wiring, run `CARGO_BAZEL_REPIN=1 bazel mod tidy`; `just bazel-lockfile-check`
+verifies the checked-in Bazel lock state is current.
+
+Bazel uses `--incompatible_strict_action_env` by default. The opt-in
+`--config=hermeticity` Bazel config also forces sandboxed local execution; CI
+runs it on Linux to catch undeclared host assumptions before remote execution is
+enabled.
 
 ## Formatting
 

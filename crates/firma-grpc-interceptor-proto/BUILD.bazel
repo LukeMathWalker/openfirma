@@ -1,23 +1,23 @@
 load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test", "rust_library")
+load("@rules_rust_prost//:defs.bzl", "rust_prost_library")
 
 package(default_visibility = ["//visibility:public"])
 
 PROTO_SRCS = glob(["proto/**/*.proto"])
 
-cargo_build_script(
-    name = "build_script",
-    srcs = ["build.rs"],
-    aliases = aliases(
-        build = True,
-        build_proc_macro = True,
-    ),
-    data = PROTO_SRCS,
-    deps = all_crate_deps(build = True),
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(build_proc_macro = True),
-    use_default_shell_env = True,
+BAZEL_CFG = ["--cfg=bazel"]
+
+proto_library(
+    name = "firma_interceptor_v1_proto",
+    srcs = PROTO_SRCS,
+    strip_import_prefix = "proto",
+)
+
+rust_prost_library(
+    name = "firma_interceptor_v1_proto_rust",
+    proto = ":firma_interceptor_v1_proto",
 )
 
 rust_library(
@@ -26,19 +26,22 @@ rust_library(
     aliases = aliases(),
     crate_name = "firma_grpc_interceptor_proto",
     crate_root = "src/lib.rs",
-    deps = all_crate_deps(normal = True) + [":build_script"],
+    deps = all_crate_deps(normal = True) + [":firma_interceptor_v1_proto_rust"],
     edition = crate_edition(),
     proc_macro_deps = all_crate_deps(proc_macro = True),
+    rustc_flags = BAZEL_CFG,
 )
 
 rust_doc_test(
     name = "doc_tests",
     crate = ":firma_grpc_interceptor_proto",
+    rustdoc_flags = BAZEL_CFG,
 )
 
 rust_doc(
     name = "docs",
     crate = ":firma_grpc_interceptor_proto",
+    rustdoc_flags = BAZEL_CFG,
 )
 
 exports_files(["Cargo.toml"] + PROTO_SRCS)

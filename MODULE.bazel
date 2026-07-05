@@ -4,7 +4,10 @@ module(
 )
 
 bazel_dep(name = "rules_rust", version = "0.71.3")
+bazel_dep(name = "rules_rust_prost", version = "0.71.3")
 bazel_dep(name = "rules_shell", version = "0.8.0")
+bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
+bazel_dep(name = "rules_proto", version = "7.1.0")
 
 single_version_override(
     module_name = "rules_rust",
@@ -28,4 +31,31 @@ crate.from_cargo(
     lockfile = "//:Cargo.Bazel.lock",
     manifests = ["//:Cargo.toml"],
 )
-use_repo(crate, "crates")
+crate.spec(
+    package = "protoc-gen-prost",
+    repositories = ["prost_plugins"],
+    version = "0.5.0",
+)
+crate.spec(
+    package = "protoc-gen-tonic",
+    repositories = ["prost_plugins"],
+    version = "0.5.0",
+)
+crate.annotation(
+    crate = "protoc-gen-prost",
+    gen_binaries = ["protoc-gen-prost"],
+    repositories = ["prost_plugins"],
+)
+crate.annotation(
+    crate = "protoc-gen-tonic",
+    gen_binaries = ["protoc-gen-tonic"],
+    repositories = ["prost_plugins"],
+)
+crate.from_specs(
+    name = "prost_plugins",
+    cargo_lockfile = "//:Cargo.Prost.lock",
+    lockfile = "//:Cargo.Prost.Bazel.lock",
+)
+use_repo(crate, "crates", "prost_plugins")
+
+register_toolchains("//bazel/proto:prost_toolchain")

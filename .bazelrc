@@ -7,10 +7,17 @@ try-import %workspace%/.bazelrc.buildbuddy.auth
 # Keep Bazel outputs out of source directories unless explicitly requested.
 build --experimental_convenience_symlinks=ignore
 
-# Match the existing Cargo build.rs contract for protobuf crates: protoc is a
-# system tool discovered on PATH, or via PROTOC when CI exports an explicit path.
-build --action_env=PATH
-build --action_env=PROTOC
+# Keep action environments explicit so Bazel actions do not accidentally depend
+# on the developer or CI runner shell environment.
+build --incompatible_strict_action_env
+
+# Linux CI hermeticity check: force sandboxed local execution before enabling
+# remote execution. Keep this opt-in so Windows/macOS jobs use their platform
+# defaults while we validate Linux RBE readiness.
+common:hermeticity --enable_bzlmod
+build:hermeticity --spawn_strategy=sandboxed
+build:hermeticity --features=layering_check
+test:hermeticity --spawn_strategy=sandboxed
 
 # Opt-in remote caching via `bazel --config=buildbuddy ...` or
 # `BAZEL_FLAGS=--config=buildbuddy just bazel-check`.
