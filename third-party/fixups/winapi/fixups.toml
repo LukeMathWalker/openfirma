@@ -1,0 +1,10 @@
+['cfg(windows)']
+features = [
+  "limits",
+  "minwinbase",
+  "minwindef",
+  "vadefs",
+  "windef",
+  "wingdi",
+  "winnt",
+]
