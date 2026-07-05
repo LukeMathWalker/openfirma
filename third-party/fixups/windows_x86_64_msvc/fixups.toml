@@ -1,5 +1,0 @@
-buildscript.run = true
-
-[[prebuilt_cxx_library]]
-name = "windows_import_lib"
-static_libs = ["lib/*.lib"]
