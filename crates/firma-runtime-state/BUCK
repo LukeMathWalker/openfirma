@@ -14,7 +14,10 @@ TEST_DEPS = [
     "//third-party:thiserror",
     "//third-party:toml",
     "//third-party:tracing",
-]
+] + select({
+    "prelude//os/constraints:windows": ["//third-party:windows-sys"],
+    "DEFAULT": [],
+})
 
 cargo.rust_library(
     name = "firma_runtime_state",
