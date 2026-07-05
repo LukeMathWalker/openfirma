@@ -325,7 +325,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          vs_root='C:\Program Files\Microsoft Visual Studio\2022\Enterprise'
+          vs_root='C:\Program Files\Microsoft Visual Studio\2026\Enterprise'
           vc_root="$vs_root\\VC"
           llvm_root='C:\Program Files\LLVM'
           bash_path='C:\Program Files\Git\bin\bash.exe'
