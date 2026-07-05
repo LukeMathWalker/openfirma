@@ -308,7 +308,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-2025]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -321,6 +321,29 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: printf 'BAZEL_STARTUP_FLAGS=--output_user_root=D:/bzl\n' >> "$GITHUB_ENV"
+      - name: Pin Windows Bazel toolchain paths
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          vs_root='C:\Program Files\Microsoft Visual Studio\2022\Enterprise'
+          vc_root="$vs_root\\VC"
+          llvm_root='C:\Program Files\LLVM'
+          bash_path='C:\Program Files\Git\bin\bash.exe'
+
+          for path in "$vs_root" "$vc_root" "$llvm_root" "$bash_path"; do
+            if [[ ! -e "$path" ]]; then
+              printf 'Expected Windows Bazel toolchain path does not exist: %s\n' "$path" >&2
+              exit 1
+            fi
+          done
+
+          {
+            printf 'BAZEL_VS=%s\n' "$vs_root"
+            printf 'BAZEL_VC=%s\n' "$vc_root"
+            printf 'BAZEL_WINSDK_FULL_VERSION=10.0.26100.0\n'
+            printf 'BAZEL_LLVM=%s\n' "$llvm_root"
+            printf 'BAZEL_SH=%s\n' "$bash_path"
+          } >> "$GITHUB_ENV"
       - name: Install protoc
         uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
         with:
