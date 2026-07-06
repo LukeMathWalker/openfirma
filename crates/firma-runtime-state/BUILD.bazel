@@ -1,5 +1,7 @@
-load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test", "rust_library", "rust_test")
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_library.bzl", "rust_library")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -10,95 +12,65 @@ rust_library(
     crate_name = "firma_runtime_state",
     crate_root = "src/lib.rs",
     deps = all_crate_deps(normal = True),
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True),
+    edition = "2024",
+)
+
+alias(
+    name = "firma-runtime-state",
+    actual = ":firma_runtime_state",
 )
 
 rust_test(
     name = "unit_tests",
-    aliases = aliases(
-        normal_dev = True,
-        proc_macro_dev = True,
-    ),
+    aliases = aliases(),
     crate = ":firma_runtime_state",
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro_dev = True),
+    edition = "2024",
     deps = all_crate_deps(normal_dev = True),
 )
 
 rust_test(
     name = "runtime_paths_integration_test",
     srcs = ["tests/runtime_paths.rs"],
-    aliases = aliases(
-        normal = True,
-        normal_dev = True,
-        proc_macro = True,
-        proc_macro_dev = True,
-    ),
+    aliases = aliases(),
     crate_name = "runtime_paths_integration_test",
-    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+    deps = all_crate_deps(normal = True, normal_dev = True) + [":firma_runtime_state"],
+    edition = "2024",
 )
 
 rust_test(
     name = "sidecar_markers_integration_test",
     srcs = ["tests/sidecar_markers.rs"],
-    aliases = aliases(
-        normal = True,
-        normal_dev = True,
-        proc_macro = True,
-        proc_macro_dev = True,
-    ),
+    aliases = aliases(),
     crate_name = "sidecar_markers_integration_test",
-    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+    deps = all_crate_deps(normal = True, normal_dev = True) + [":firma_runtime_state"],
+    edition = "2024",
 )
 
 rust_test(
     name = "process_id_integration_test",
     srcs = ["tests/process_id.rs"],
-    aliases = aliases(
-        normal = True,
-        normal_dev = True,
-        proc_macro = True,
-        proc_macro_dev = True,
-    ),
+    aliases = aliases(),
     crate_name = "process_id_integration_test",
-    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+    deps = all_crate_deps(normal = True, normal_dev = True) + [":firma_runtime_state"],
+    edition = "2024",
 )
 
 rust_test(
     name = "state_dir_resolution_integration_test",
     srcs = ["tests/state_dir_resolution.rs"],
-    aliases = aliases(
-        normal = True,
-        normal_dev = True,
-        proc_macro = True,
-        proc_macro_dev = True,
-    ),
+    aliases = aliases(),
     crate_name = "state_dir_resolution_integration_test",
-    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+    deps = all_crate_deps(normal = True, normal_dev = True) + [":firma_runtime_state"],
+    edition = "2024",
 )
 
 rust_test(
     name = "pidfile_roundtrip_integration_test",
     srcs = ["tests/pidfile_roundtrip.rs"],
-    aliases = aliases(
-        normal = True,
-        normal_dev = True,
-        proc_macro = True,
-        proc_macro_dev = True,
-    ),
+    aliases = aliases(),
     crate_name = "pidfile_roundtrip_integration_test",
-    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True) + [":firma_runtime_state"],
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+    deps = all_crate_deps(normal = True, normal_dev = True) + [":firma_runtime_state"],
+    edition = "2024",
 )
 
 rust_doc_test(

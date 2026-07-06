@@ -40,7 +40,7 @@ umask 077
 
 if [[ -n "${GITHUB_ENV:-}" ]]; then
   bazel_flags="${BAZEL_FLAGS:-}"
-  bazel_flags="${bazel_flags:+$bazel_flags }--config=buildbuddy"
+  bazel_flags="${bazel_flags:+$bazel_flags }--config=buildbuddy-ci"
   printf 'BAZEL_FLAGS=%s\n' "$bazel_flags" >>"$GITHUB_ENV"
 fi
 

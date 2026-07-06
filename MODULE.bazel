@@ -3,62 +3,103 @@ module(
     version = "0.1.2",
 )
 
-bazel_dep(name = "rules_rust", version = "0.71.3")
-bazel_dep(name = "rules_rust_prost", version = "0.71.3")
+bazel_dep(name = "rules_rs", version = "0.0.94")
+bazel_dep(name = "llvm", version = "0.8.9")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_cc", version = "0.2.19")
 bazel_dep(name = "rules_shell", version = "0.8.0")
-bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "34.0.bcr.1", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_proto", version = "7.1.0")
 
 single_version_override(
-    module_name = "rules_rust",
+    module_name = "rules_rs",
     patch_strip = 1,
+    patches = ["//bazel:rules_rs-windows-gnullvm-exec.patch"],
+    version = "0.0.94",
+)
+
+# rules_rs provisions the patched rules_rust compatibility repo used by
+# doc/prost/aspect APIs that do not have rules_rs wrapper loads yet.
+rules_rust = use_extension("@rules_rs//rs:rules_rust.bzl", "rules_rust")
+rules_rust.patch(
     patches = ["//bazel:rules_rust-windows-ldep-consolidation.patch"],
-    version = "0.71.3",
+    strip = 1,
+)
+use_repo(rules_rust, "rules_rust")
+
+# Compatibility repo for rules_rust prost APIs; plugin binaries come from rules_rs.
+rules_rust_prost = use_extension("@rules_rs//rs:rules_rust_prost.bzl", "rules_rust_prost")
+use_repo(rules_rust_prost, "rules_rust_prost")
+
+osx = use_extension("@llvm//extensions:osx.bzl", "osx")
+osx.frameworks(names = [
+    "ApplicationServices",
+    "AppKit",
+    "AudioToolbox",
+    "AudioUnit",
+    "AVFoundation",
+    "AVFAudio",
+    "AVRouting",
+    "CFNetwork",
+    "ColorSync",
+    "CoreAudio",
+    "CoreAudioTypes",
+    "CoreFoundation",
+    "CoreGraphics",
+    "CoreImage",
+    "CoreMedia",
+    "CoreMIDI",
+    "CoreServices",
+    "CoreText",
+    "CoreVideo",
+    "DiskArbitration",
+    "Foundation",
+    "FontServices",
+    "ImageIO",
+    "IOKit",
+    "IOSurface",
+    "Kernel",
+    "Metal",
+    "MetalKit",
+    "OpenGL",
+    "OSLog",
+    "QuartzCore",
+    "ScreenCaptureKit",
+    "Security",
+    "SystemConfiguration",
+    "UniformTypeIdentifiers",
+    "VideoToolbox",
+    "Virtualization",
+])
+use_repo(osx, "macos_sdk")
+
+toolchains = use_extension("@rules_rs//rs/toolchains:module_extension.bzl", "toolchains")
+toolchains.toolchain(
+    edition = "2024",
+    version = "1.96.0",
+)
+use_repo(toolchains, "default_rust_toolchains")
+
+register_toolchains(
+    "//platforms:all",
+    "@default_rust_toolchains//:all",
+    "@llvm//toolchain:all",
 )
 
-rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
-rust.toolchain(
-    versions = ["1.96.0"],
-)
-use_repo(rust, "rust_toolchains")
-
-register_toolchains("@rust_toolchains//:all")
-
-crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
-crate.render_config(
-    generate_cargo_toml_env_vars = False,
-)
+crate = use_extension("@rules_rs//rs:extensions.bzl", "crate")
 crate.from_cargo(
     name = "crates",
-    cargo_lockfile = "//:Cargo.lock",
-    lockfile = "//:Cargo.Bazel.lock",
-    manifests = ["//:Cargo.toml"],
+    cargo_lock = "//:Cargo.lock",
+    cargo_toml = "//:Cargo.toml",
+    platform_triples = [
+        "aarch64-apple-darwin",
+        "aarch64-pc-windows-gnullvm",
+        "aarch64-unknown-linux-gnu",
+        "x86_64-apple-darwin",
+        "x86_64-pc-windows-gnullvm",
+        "x86_64-unknown-linux-gnu",
+    ],
 )
-crate.spec(
-    package = "protoc-gen-prost",
-    repositories = ["prost_plugins"],
-    version = "0.5.0",
-)
-crate.spec(
-    package = "protoc-gen-tonic",
-    repositories = ["prost_plugins"],
-    version = "0.5.0",
-)
-crate.annotation(
-    crate = "protoc-gen-prost",
-    gen_binaries = ["protoc-gen-prost"],
-    repositories = ["prost_plugins"],
-)
-crate.annotation(
-    crate = "protoc-gen-tonic",
-    gen_binaries = ["protoc-gen-tonic"],
-    repositories = ["prost_plugins"],
-)
-crate.from_specs(
-    name = "prost_plugins",
-    cargo_lockfile = "//:Cargo.Prost.lock",
-    lockfile = "//:Cargo.Prost.Bazel.lock",
-)
-use_repo(crate, "crates", "prost_plugins")
+use_repo(crate, "crates")
 
 register_toolchains("//bazel/proto:prost_toolchain")

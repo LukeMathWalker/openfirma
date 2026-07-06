@@ -1,6 +1,8 @@
 load("//bazel:rust_tests.bzl", "cargo_integration_test")
-load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test", "rust_library", "rust_test")
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_library.bzl", "rust_library")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -23,20 +25,20 @@ rust_library(
         "//crates/firma-runtime-state:firma_runtime_state",
         "//crates/firma-sidecar:firma_sidecar",
     ],
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True),
+    edition = "2024",
+)
+
+alias(
+    name = "firma-run",
+    actual = ":firma_run",
 )
 
 rust_test(
     name = "unit_tests",
-    aliases = aliases(
-        normal_dev = True,
-        proc_macro_dev = True,
-    ),
+    aliases = aliases(),
     crate = ":firma_run",
     deps = all_crate_deps(normal_dev = True),
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro_dev = True),
+    edition = "2024",
 )
 
 rust_doc_test(

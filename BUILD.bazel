@@ -1,26 +1,19 @@
-load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_test")
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
 
 rust_test(
     name = "firma_e2e_test",
     srcs = glob(["tests/e2e/**/*.rs"]),
-    aliases = aliases(
-        normal = True,
-        normal_dev = True,
-        proc_macro = True,
-        proc_macro_dev = True,
-        package_name = "crates/firma",
-    ),
+    aliases = aliases(package_name = "crates/firma"),
     crate_name = "e2e",
     crate_root = "tests/e2e/main.rs",
     data = [
         "//crates/firma:firma",
     ] + glob(["tests/e2e/snapshots/**/*.snap"]),
-    deps = all_crate_deps(normal = True, package_name = "crates/firma") + all_crate_deps(normal_dev = True, package_name = "crates/firma") + [
+    deps = all_crate_deps(normal = True, normal_dev = True, package_name = "crates/firma") + [
         "//crates/firma-sidecar:firma_sidecar",
     ],
-    edition = crate_edition(package_name = "crates/firma"),
-    proc_macro_deps = all_crate_deps(proc_macro = True, package_name = "crates/firma") + all_crate_deps(proc_macro_dev = True, package_name = "crates/firma"),
+    edition = "2024",
     rustc_env = {
         "CARGO_BIN_EXE_firma": "$(rootpath //crates/firma:firma)",
     },

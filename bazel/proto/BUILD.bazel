@@ -20,10 +20,10 @@ rust_library_group(
 rust_prost_toolchain(
     name = "prost_toolchain_impl",
     compile_well_known_types = False,
-    prost_plugin = "@prost_plugins//:protoc-gen-prost__protoc-gen-prost",
+    prost_plugin = "@rules_rs//rs/private/prost:protoc-gen-prost__protoc-gen-prost",
     prost_runtime = ":prost_runtime",
     prost_types = "@crates//:prost-types",
-    tonic_plugin = "@prost_plugins//:protoc-gen-tonic__protoc-gen-tonic",
+    tonic_plugin = "@rules_rs//rs/private/prost:protoc-gen-tonic__protoc-gen-tonic",
     tonic_runtime = ":tonic_runtime",
 )
 

@@ -61,7 +61,7 @@ jobs:
         with:
           path: |
             ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'Cargo.Bazel.lock', 'Cargo.Prost.lock', 'Cargo.Prost.Bazel.lock', 'bazel/**/*.patch') }}
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
           restore-keys: |
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
@@ -140,7 +140,7 @@ jobs:
         with:
           path: |
             ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'Cargo.Bazel.lock', 'Cargo.Prost.lock', 'Cargo.Prost.Bazel.lock', 'bazel/**/*.patch') }}
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
           restore-keys: |
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
@@ -189,7 +189,7 @@ jobs:
         with:
           path: |
             ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'Cargo.Bazel.lock', 'Cargo.Prost.lock', 'Cargo.Prost.Bazel.lock', 'bazel/**/*.patch') }}
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
           restore-keys: |
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
@@ -241,7 +241,7 @@ jobs:
         with:
           path: |
             ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'Cargo.Bazel.lock', 'Cargo.Prost.lock', 'Cargo.Prost.Bazel.lock', 'bazel/**/*.patch') }}
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
           restore-keys: |
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
@@ -422,68 +422,6 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: printf 'BAZEL_STARTUP_FLAGS=--output_user_root=D:/bzl\n' >> "$GITHUB_ENV"
-      - name: Resolve Windows Bazel toolchain paths
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-          if (!(Test-Path $vswhere)) {
-            Write-Error "Expected vswhere.exe at $vswhere"
-            exit 1
-          }
-
-          $vsRoot = & $vswhere -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-          if (!$vsRoot) {
-            Write-Error 'Could not resolve a Visual Studio installation with VC tools.'
-            exit 1
-          }
-
-          $vcRoot = Join-Path $vsRoot 'VC'
-          $msvcRoot = Join-Path $vcRoot 'Tools\MSVC'
-          $vcFullVersion = Get-ChildItem -Directory $msvcRoot |
-            Sort-Object { [version]$_.Name } |
-            Select-Object -Last 1 -ExpandProperty Name
-          $sdkIncludeRoot = 'C:\Program Files (x86)\Windows Kits\10\Include'
-          $winSdkFullVersion = Get-ChildItem -Directory $sdkIncludeRoot |
-            Sort-Object { [version]$_.Name } |
-            Select-Object -Last 1 -ExpandProperty Name
-          $llvmRoot = 'C:\Program Files\LLVM'
-          $bashPath = 'C:\Program Files\Git\bin\bash.exe'
-
-          foreach ($path in @($vsRoot, $vcRoot, $msvcRoot, $llvmRoot, $bashPath)) {
-            if (!(Test-Path $path)) {
-              Write-Error "Expected Windows Bazel toolchain path does not exist: $path"
-              exit 1
-            }
-          }
-
-          @(
-            "BAZEL_VS=$vsRoot",
-            "BAZEL_VC=$vcRoot",
-            "BAZEL_VC_FULL_VERSION=$vcFullVersion",
-            "BAZEL_WINSDK_FULL_VERSION=$winSdkFullVersion",
-            "BAZEL_LLVM=$llvmRoot",
-            "BAZEL_SH=$bashPath"
-          ) | Add-Content -Path $env:GITHUB_ENV
-
-          function Add-BazelRepoEnv($name, $value) {
-            $repoValue = $value -replace '\\', '/'
-            "common '--repo_env=$name=$repoValue'"
-          }
-
-          @(
-            '# Generated by CI to avoid repeated Windows C++ toolchain probing.',
-            (Add-BazelRepoEnv 'BAZEL_VS' $vsRoot),
-            (Add-BazelRepoEnv 'BAZEL_VC' $vcRoot),
-            (Add-BazelRepoEnv 'BAZEL_VC_FULL_VERSION' $vcFullVersion),
-            (Add-BazelRepoEnv 'BAZEL_WINSDK_FULL_VERSION' $winSdkFullVersion),
-            (Add-BazelRepoEnv 'BAZEL_LLVM' $llvmRoot),
-            (Add-BazelRepoEnv 'BAZEL_SH' $bashPath)
-          ) | Set-Content -Path .bazelrc.windows.local -Encoding utf8
-
-          Write-Host "BAZEL_VS=$vsRoot"
-          Write-Host "BAZEL_VC_FULL_VERSION=$vcFullVersion"
-          Write-Host "BAZEL_WINSDK_FULL_VERSION=$winSdkFullVersion"
       - name: Set up Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
@@ -504,7 +442,7 @@ jobs:
         with:
           path: |
             ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'Cargo.Bazel.lock', 'Cargo.Prost.lock', 'Cargo.Prost.Bazel.lock', 'bazel/**/*.patch') }}
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
           restore-keys: |
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
@@ -536,7 +474,7 @@ jobs:
         shell: bash
         run: |
           if [[ "$RUNNER_OS" == 'Windows' ]]; then
-            # rules_rust 0.71.3 Windows/Bzlmod doctest runners cannot locate
+            # rules_rs Windows/Bzlmod doctest runners cannot locate
             # process_wrapper.exe through runfiles. Keep Windows Bazel unit and
             # integration coverage, but leave Bazel doctests to Unix runners.
             bazel ${BAZEL_STARTUP_FLAGS:-} query ${BAZEL_FLAGS:-} 'tests(//...) except kind("rust_doc_test rule", //...)' |
@@ -658,7 +596,7 @@ jobs:
         with:
           path: |
             ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'Cargo.Bazel.lock', 'Cargo.Prost.lock', 'Cargo.Prost.Bazel.lock', 'bazel/**/*.patch') }}
+          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
           restore-keys: |
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
             bazel-repositories-${{ runner.os }}-${{ runner.arch }}-

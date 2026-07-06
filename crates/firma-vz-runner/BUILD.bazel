@@ -1,5 +1,6 @@
-load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_binary.bzl", "rust_binary")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -11,26 +12,19 @@ rust_binary(
     crate_name = "firma_vz_runner",
     crate_root = "src/main.rs",
     deps = all_crate_deps(normal = True),
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True),
+    edition = "2024",
     version = "0.1.2",
 )
 
 rust_test(
     name = "unit_tests",
     srcs = glob(["src/**/*.rs"]),
-    aliases = aliases(
-        normal = True,
-        normal_dev = True,
-        proc_macro = True,
-        proc_macro_dev = True,
-    ),
+    aliases = aliases(),
     compile_data = glob(["src/contract/fixtures/**"]),
     crate_name = "firma_vz_runner_test",
     crate_root = "src/main.rs",
-    deps = all_crate_deps(normal = True) + all_crate_deps(normal_dev = True),
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True) + all_crate_deps(proc_macro_dev = True),
+    deps = all_crate_deps(normal = True, normal_dev = True),
+    edition = "2024",
     version = "0.1.2",
 )
 

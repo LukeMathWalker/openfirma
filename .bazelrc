@@ -1,12 +1,13 @@
 common --enable_bzlmod
+common --enable_platform_specific_config
+common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+common --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+common:windows --host_platform=//platforms:local_windows_gnullvm
+common:windows --platforms=//platforms:local_windows_gnullvm
 
 # Optional local/CI credentials and metadata for the BuildBuddy remote cache.
 # This file must not be checked in; CI generates it from BUILD_BUDDY_API_KEY.
 try-import %workspace%/.bazelrc.buildbuddy.auth
-
-# Optional local/CI Windows C++ toolchain pinning. CI generates this from
-# runner-specific Visual Studio, Windows SDK, LLVM, and shell paths.
-try-import %workspace%/.bazelrc.windows.local
 
 # Keep Bazel outputs out of source directories unless explicitly requested.
 build --experimental_convenience_symlinks=ignore
@@ -14,6 +15,11 @@ build --experimental_convenience_symlinks=ignore
 # Keep action environments explicit so Bazel actions do not accidentally depend
 # on the developer or CI runner shell environment.
 build --incompatible_strict_action_env
+
+# Keep Rust build scripts that use cc-rs aligned with hermetic-llvm's C/C++
+# toolchain assumptions.
+common --@rules_cc//cc/toolchains/args/archiver_flags:use_libtool_on_macos=False
+common --@llvm//config:experimental_stub_libgcc_s
 
 # Linux CI hermeticity check: force sandboxed local execution before enabling
 # remote execution. Keep this opt-in so Windows/macOS jobs use their platform
@@ -34,3 +40,10 @@ common:buildbuddy --remote_cache=grpcs://remote.buildbuddy.io
 common:buildbuddy --remote_cache_compression
 common:buildbuddy --remote_download_minimal
 common:buildbuddy --remote_timeout=10m
+
+# CI runners have fresh Bazel output bases, so the first remote-cache-backed
+# invocation is dominated by action-cache probes. Increase action scheduling
+# parallelism in CI without changing local `--config=buildbuddy` behavior.
+common:buildbuddy-ci --config=buildbuddy
+build:buildbuddy-ci --jobs=32
+test:buildbuddy-ci --jobs=32

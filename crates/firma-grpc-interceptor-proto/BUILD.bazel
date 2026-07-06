@@ -1,6 +1,7 @@
-load("@crates//:defs.bzl", "aliases", "all_crate_deps", "crate_edition")
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
 load("@rules_proto//proto:defs.bzl", "proto_library")
-load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test", "rust_library")
+load("@rules_rs//rs:rust_library.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test")
 load("@rules_rust_prost//:defs.bzl", "rust_prost_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -27,9 +28,13 @@ rust_library(
     crate_name = "firma_grpc_interceptor_proto",
     crate_root = "src/lib.rs",
     deps = all_crate_deps(normal = True) + [":firma_interceptor_v1_proto_rust"],
-    edition = crate_edition(),
-    proc_macro_deps = all_crate_deps(proc_macro = True),
+    edition = "2024",
     rustc_flags = BAZEL_CFG,
+)
+
+alias(
+    name = "firma-grpc-interceptor-proto",
+    actual = ":firma_grpc_interceptor_proto",
 )
 
 rust_doc_test(

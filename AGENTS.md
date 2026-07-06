@@ -26,18 +26,16 @@ Cargo-native protobuf compilation still requires `protoc` installed:
 via `tonic-prost-build` against a system `protoc`. Bazel builds those protobuf
 crates with hermetic `rules_rust_prost` targets instead of Cargo build scripts.
 
-Bazel dependency state uses separate lockfiles:
+Bazel dependency state uses Cargo's lockfile plus Bzlmod state:
 
-- `Cargo.Bazel.lock` renders the main Cargo workspace for Bazel from
-  `Cargo.toml` and `Cargo.lock`.
-- `Cargo.Prost.lock` locks Bazel-only protobuf codegen tool resolution.
-- `Cargo.Prost.Bazel.lock` renders those protobuf codegen tools for Bazel.
+- `Cargo.lock` locks the Cargo workspace used by both Cargo and Bazel
+  `rules_rs` crate resolution.
 - `MODULE.bazel.lock` locks Bzlmod module resolution.
 
 Do not add `protoc-gen-prost` or `protoc-gen-tonic` to `Cargo.lock` unless they
 become real Cargo-native dependencies. After changing Cargo/Bazel dependency
-wiring, run `CARGO_BAZEL_REPIN=1 bazel mod tidy`; `just bazel-lockfile-check`
-verifies the checked-in Bazel lock state is current.
+wiring, run `bazel mod tidy`; `just bazel-lockfile-check` verifies the
+checked-in Bazel lock state is current.
 
 Bazel uses `--incompatible_strict_action_env` by default. The opt-in
 `--config=hermeticity` Bazel config also forces sandboxed local execution; CI
