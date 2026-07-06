@@ -169,33 +169,27 @@ jobs:
         continue-on-error: true
         run: just --verbose build
 
+      - name: Buck2 diagnostics after build
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh build
+
       - name: Lint
         id: lint
         continue-on-error: true
         run: just lint
+
+      - name: Buck2 diagnostics after lint
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh lint
 
       - name: Test
         id: test
         continue-on-error: true
         run: just test
 
-      - name: Buck2 remote cache diagnostics
+      - name: Buck2 diagnostics after test
         if: always()
-        shell: bash
-        run: |
-          set +e
-          buck2_bin="${BUCK2_BIN:-buck2}"
-
-          "$buck2_bin" log summary --recent 0
-          "$buck2_bin" log what-uploaded --recent 0
-
-          if command -v rg >/dev/null 2>&1; then
-            "$buck2_bin" log show --recent 0 | rg -i 're_|remote|cache|upload|download|action_cache|cas'
-          else
-            printf 'ripgrep is not available; skipping filtered Buck2 event log output.\n'
-          fi
-
-          exit 0
+        run: bash scripts/ci/buck2-diagnostics.sh test
 
       - name: Fail if any verification step failed
         if: ${{ steps.build.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.test.outcome == 'failure' }}
@@ -253,6 +247,10 @@ jobs:
       - name: Generate coverage
         run: just coverage
 
+      - name: Buck2 diagnostics after coverage
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh coverage
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
@@ -273,3 +271,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check fuzz targets
         run: just fuzz-check
+
+      - name: Buck2 diagnostics after fuzz-check
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh fuzz-check

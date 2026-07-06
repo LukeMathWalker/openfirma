@@ -36,6 +36,10 @@ jobs:
       - name: Run demo CI driver
         run: timeout 240 just demo-ci
 
+      - name: Buck2 diagnostics after demo CI driver
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh demo-ci
+
       - name: Assert audit ALLOW + DENY events
         run: |
           set -euo pipefail
