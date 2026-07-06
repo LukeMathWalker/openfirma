@@ -1,0 +1,59 @@
+load("@prelude//rust:cargo_buildscript.bzl", "buildscript_run")
+load("@prelude//rust:cargo_package.bzl", "cargo")
+
+COMMON_ENV = {
+    "CARGO_PKG_NAME": "firma-grpc-interceptor-proto",
+    "CARGO_PKG_VERSION": "0.1.2",
+    "CARGO_PKG_VERSION_MAJOR": "0",
+    "CARGO_PKG_VERSION_MINOR": "1",
+    "CARGO_PKG_VERSION_PATCH": "2",
+    "CARGO_PKG_VERSION_PRE": "",
+}
+
+PROTO_SRCS = glob(["proto/**/*.proto"])
+
+genrule(
+    name = "firma-grpc-interceptor-proto-manifest-dir",
+    srcs = PROTO_SRCS,
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/proto/firma/interceptor/v1 && cp $SRCS $OUT/proto/firma/interceptor/v1/",
+    cmd_exe = "python -c \"import os, pathlib, shutil; out = pathlib.Path(os.environ['OUT']) / 'proto' / 'firma' / 'interceptor' / 'v1'; out.mkdir(parents=True, exist_ok=True); [shutil.copy2(src, out / pathlib.Path(src).name) for src in os.environ['SRCS'].split()]\"",
+)
+
+cargo.rust_library(
+    name = "firma_grpc_interceptor_proto",
+    crate = "firma_grpc_interceptor_proto",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]) + PROTO_SRCS,
+    env = COMMON_ENV | {
+        "OUT_DIR": "$(location :firma-grpc-interceptor-proto-build-script-run[out_dir])",
+    },
+    rustc_flags = ["@$(location :firma-grpc-interceptor-proto-build-script-run[rustc_flags])"],
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third-party:prost",
+        "//third-party:tonic",
+        "//third-party:tonic-prost",
+    ],
+)
+
+cargo.rust_binary(
+    name = "firma-grpc-interceptor-proto-build-script-build",
+    crate = "build_script_build",
+    crate_root = "build.rs",
+    edition = "2024",
+    srcs = ["build.rs"] + PROTO_SRCS,
+    env = COMMON_ENV,
+    visibility = [],
+    deps = ["//third-party:tonic-prost-build"],
+)
+
+buildscript_run(
+    name = "firma-grpc-interceptor-proto-build-script-run",
+    package_name = "firma-grpc-interceptor-proto",
+    buildscript_rule = ":firma-grpc-interceptor-proto-build-script-build",
+    env = COMMON_ENV,
+    manifest_dir = ":firma-grpc-interceptor-proto-manifest-dir",
+    version = "0.1.2",
+)

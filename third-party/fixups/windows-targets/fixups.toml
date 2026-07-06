@@ -1,0 +1,2 @@
+['cfg(all(target_os = "windows", target_env = "msvc"))']
+cfgs = ["windows_raw_dylib"]

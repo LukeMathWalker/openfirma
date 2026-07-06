@@ -1,0 +1,4 @@
+buildscript.run = false
+
+['cfg(target_os = "windows")']
+extra_deps = ["//third-party-native:stacker-windows"]

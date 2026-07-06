@@ -1,0 +1,462 @@
+load("@prelude//:prelude.bzl", "native")
+load("@prelude//rust:cargo_package.bzl", "cargo")
+
+POLICY_TESTDATA_SRCS = glob(["tests/testdata/policy/**/*"])
+
+genrule(
+    name = "firma-policy-testdata-manifest-dir",
+    srcs = POLICY_TESTDATA_SRCS,
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/tests/testdata/policy && for src in $SRCS; do rel=${src#*tests/testdata/policy/}; dir=${rel%/*}; if [ $dir = $rel ]; then dir=.; fi; mkdir -p $OUT/tests/testdata/policy/$dir; cp $src $OUT/tests/testdata/policy/$rel; done",
+    cmd_exe = "python -c \"import os, pathlib, shutil; out = pathlib.Path(os.environ['OUT']) / 'tests' / 'testdata' / 'policy'; [((out / pathlib.Path(*pathlib.PureWindowsPath(src).parts[pathlib.PureWindowsPath(src).parts.index('policy') + 1:])).parent.mkdir(parents=True, exist_ok=True), shutil.copy2(src, out / pathlib.Path(*pathlib.PureWindowsPath(src).parts[pathlib.PureWindowsPath(src).parts.index('policy') + 1:]))) for src in os.environ['SRCS'].split()]\"",
+)
+
+cargo.rust_binary(
+    name = "firma",
+    crate = "firma",
+    crate_root = "src/main.rs",
+    edition = "2024",
+    env = {
+        "CARGO_PKG_VERSION": "0.1.2",
+    },
+    visibility = ["//tests/e2e:main_test"],
+    srcs = glob([
+        "src/**/*.rs",
+        "templates/**/*",
+    ]),
+    deps = [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader_clap",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-run:firma_run",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//crates/firma-stack:firma_stack",
+        "//third-party:anyhow",
+        "//third-party:cedar-policy",
+        "//third-party:chrono",
+        "//third-party:clap",
+        "//third-party:ctrlc",
+        "//third-party:dialoguer",
+        "//third-party:miette",
+        "//third-party:nix",
+        "//third-party:owo-colors",
+        "//third-party:p256",
+        "//third-party:pasetors",
+        "//third-party:rcgen",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:serde_yaml",
+        "//third-party:sha2",
+        "//third-party:tempfile",
+        "//third-party:textwrap",
+        "//third-party:thiserror",
+        "//third-party:time",
+        "//third-party:tokio",
+        "//third-party:tokio-util",
+        "//third-party:toml",
+        "//third-party:toml_edit",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+        "//third-party:uuid",
+        "//third-party:x509-parser",
+    ],
+)
+
+native.rust_test(
+    name = "unit_tests",
+    crate = "firma",
+    crate_root = "src/main.rs",
+    edition = "2024",
+    env = {
+        "CARGO_PKG_VERSION": "0.1.2",
+    },
+    srcs = glob([
+        "src/**/*.rs",
+        "templates/**/*",
+    ]),
+    deps = [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader_clap",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-run:firma_run",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//crates/firma-stack:firma_stack",
+        "//third-party:anyhow",
+        "//third-party:cedar-policy",
+        "//third-party:chrono",
+        "//third-party:clap",
+        "//third-party:ctrlc",
+        "//third-party:dialoguer",
+        "//third-party:fs-err",
+        "//third-party:http-body-util",
+        "//third-party:hyper",
+        "//third-party:hyper-util",
+        "//third-party:insta",
+        "//third-party:miette",
+        "//third-party:nix",
+        "//third-party:owo-colors",
+        "//third-party:p256",
+        "//third-party:pasetors",
+        "//third-party:pretty_assertions",
+        "//third-party:rand",
+        "//third-party:rcgen",
+        "//third-party:regex",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:serde_repr",
+        "//third-party:serde_yaml",
+        "//third-party:sha2",
+        "//third-party:strum",
+        "//third-party:tempfile",
+        "//third-party:textwrap",
+        "//third-party:thiserror",
+        "//third-party:time",
+        "//third-party:tokio",
+        "//third-party:tokio-util",
+        "//third-party:toml",
+        "//third-party:toml_edit",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+        "//third-party:uuid",
+        "//third-party:wait-timeout",
+        "//third-party:wiremock",
+        "//third-party:x509-parser",
+    ],
+)
+
+native.rust_test(
+    name = "cli_help_test",
+    crate = "cli_help",
+    crate_root = "tests/cli_help.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/cli_help.rs"],
+    deps = [],
+)
+
+native.rust_test(
+    name = "cli_parsing_test",
+    crate = "cli_parsing",
+    crate_root = "tests/cli_parsing.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/cli_parsing.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:clap",
+    ],
+)
+
+native.rust_test(
+    name = "run_authority_flags_test",
+    crate = "run_authority_flags",
+    crate_root = "tests/run_authority_flags.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/run_authority_flags.rs"],
+    deps = [],
+)
+
+native.rust_test(
+    name = "run_autostart_flags_test",
+    crate = "run_autostart_flags",
+    crate_root = "tests/run_autostart_flags.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/run_autostart_flags.rs"],
+    deps = [],
+)
+
+native.rust_test(
+    name = "monitor_decoupled_test",
+    crate = "monitor_decoupled",
+    crate_root = "tests/monitor_decoupled.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/monitor_decoupled.rs"],
+    deps = ["//third-party:tempfile"],
+)
+
+native.rust_test(
+    name = "monitor_audit_stream_test",
+    crate = "monitor_audit_stream",
+    crate_root = "tests/monitor_audit_stream.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/monitor_audit_stream.rs"],
+    deps = ["//third-party:tempfile"],
+)
+
+native.rust_test(
+    name = "authority_keygen_test",
+    crate = "authority_keygen",
+    crate_root = "tests/authority_keygen.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/authority_keygen.rs"],
+    deps = ["//third-party:tempfile"],
+)
+
+native.rust_test(
+    name = "doctor_test",
+    crate = "doctor",
+    crate_root = "tests/doctor.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/doctor.rs"],
+    deps = [
+        "//third-party:serde_json",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "run_echo_smoke_test",
+    crate = "run_echo_smoke",
+    crate_root = "tests/run_echo_smoke.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/run_echo_smoke.rs"],
+    deps = ["//third-party:tempfile"],
+)
+
+native.rust_test(
+    name = "sidecar_status_cli_test",
+    crate = "sidecar_status_cli",
+    crate_root = "tests/sidecar_status_cli.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_status_cli.rs"],
+    deps = ["//third-party:tempfile"],
+)
+
+native.rust_test(
+    name = "stack_teardown_grandchildren_test",
+    crate = "stack_teardown_grandchildren",
+    crate_root = "tests/stack_teardown_grandchildren.rs",
+    edition = "2024",
+    srcs = ["tests/stack_teardown_grandchildren.rs"],
+    deps = [
+        "//crates/firma-stack:firma_stack",
+        "//third-party:nix",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "run_implicit_init_prompt_test",
+    crate = "run_implicit_init_prompt",
+    crate_root = "tests/run_implicit_init_prompt.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/run_implicit_init_prompt.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "stack_lifecycle_test",
+    crate = "stack_lifecycle",
+    crate_root = "tests/stack_lifecycle.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/stack_lifecycle.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "sidecar_invalid_config_test",
+    crate = "sidecar_invalid_config",
+    crate_root = "tests/sidecar_invalid_config.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_invalid_config.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "firma_config_test",
+    crate = "firma_config",
+    crate_root = "tests/firma_config.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/firma_config.rs"],
+    deps = [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
+    name = "policy_cli_test",
+    crate = "policy_cli",
+    crate_root = "tests/policy_cli.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+        "CARGO_MANIFEST_DIR": "$(location :firma-policy-testdata-manifest-dir)",
+    },
+    srcs = ["tests/policy_cli.rs"] + POLICY_TESTDATA_SRCS,
+    deps = [],
+)
+
+native.rust_test(
+    name = "sidecar_startup_contract_test",
+    crate = "sidecar_startup_contract",
+    crate_root = "tests/sidecar_startup_contract.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_startup_contract.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "sidecar_tampered_seed_e2e_test",
+    crate = "sidecar_tampered_seed_e2e",
+    crate_root = "tests/sidecar_tampered_seed_e2e.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_tampered_seed_e2e.rs"],
+    deps = [
+        "//crates/firma-core:firma_core",
+        "//third-party:p256",
+        "//third-party:rand",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
+    name = "seeded_capability_e2e_test",
+    crate = "seeded_capability_e2e",
+    crate_root = "tests/seeded_capability_e2e.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/seeded_capability_e2e.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
+    name = "sidecar_readiness_gate_test",
+    crate = "sidecar_readiness_gate",
+    crate_root = "tests/sidecar_readiness_gate.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/sidecar_readiness_gate.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:p256",
+        "//third-party:rand",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "e2e_startup_test",
+    crate = "e2e_startup",
+    crate_root = "tests/e2e_startup.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/e2e_startup.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:nix",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "live_capability_e2e_test",
+    crate = "live_capability_e2e",
+    crate_root = "tests/live_capability_e2e.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+        "RUST_TEST_THREADS": "1",
+    },
+    srcs = ["tests/live_capability_e2e.rs"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-run:firma_run",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
+    name = "child_process_escape_test",
+    crate = "child_process_escape",
+    crate_root = "tests/child_process_escape.rs",
+    edition = "2024",
+    env = {
+        "CARGO_BIN_EXE_firma": "$(location :firma)",
+    },
+    srcs = ["tests/child_process_escape.rs"],
+    deps = [
+        "//third-party:tempfile",
+        "//third-party:wait-timeout",
+    ],
+)

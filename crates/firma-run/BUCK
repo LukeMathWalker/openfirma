@@ -1,0 +1,232 @@
+load("@prelude//:prelude.bzl", "native")
+load("@prelude//rust:cargo_package.bzl", "cargo")
+
+cargo.rust_library(
+    name = "firma_run",
+    crate = "firma_run",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob([
+        "src/**/*.rs",
+        "src/backend/fixtures/**/*",
+        "src/resources/**/*",
+        "seccomp/**/*.toml",
+    ]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-protobuf:firma_protobuf",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//third-party:anyhow",
+        "//third-party:chrono",
+        "//third-party:ctrlc",
+        "//third-party:dialoguer",
+        "//third-party:hex",
+        "//third-party:nix",
+        "//third-party:p256",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:sha2",
+        "//third-party:thiserror",
+        "//third-party:tokio",
+        "//third-party:toml",
+        "//third-party:toml_edit",
+        "//third-party:tonic",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+        "//third-party:uuid",
+        "//third-party:wait-timeout",
+    ],
+)
+
+native.rust_test(
+    name = "authority_bootstrap_prompt_test",
+    crate = "authority_bootstrap_prompt",
+    crate_root = "tests/authority_bootstrap_prompt.rs",
+    edition = "2024",
+    srcs = ["tests/authority_bootstrap_prompt.rs"],
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "authority_autostart_eaddrinuse_test",
+    crate = "authority_autostart_eaddrinuse",
+    crate_root = "tests/authority_autostart_eaddrinuse.rs",
+    edition = "2024",
+    srcs = ["tests/authority_autostart_eaddrinuse.rs"],
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "authority_autostart_reuse_test",
+    crate = "authority_autostart_reuse",
+    crate_root = "tests/authority_autostart_reuse.rs",
+    edition = "2024",
+    srcs = ["tests/authority_autostart_reuse.rs"],
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "authority_autostart_kill_on_drop_test",
+    crate = "authority_autostart_kill_on_drop",
+    crate_root = "tests/authority_autostart_kill_on_drop.rs",
+    edition = "2024",
+    srcs = ["tests/authority_autostart_kill_on_drop.rs"],
+    deps = [
+        ":firma_run",
+        "//third-party:nix",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "authority_autostart_timeout_test",
+    crate = "authority_autostart_timeout",
+    crate_root = "tests/authority_autostart_timeout.rs",
+    edition = "2024",
+    srcs = ["tests/authority_autostart_timeout.rs"],
+    deps = [
+        ":firma_run",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "authority_autostart_marker_test",
+    crate = "authority_autostart_marker",
+    crate_root = "tests/authority_autostart_marker.rs",
+    edition = "2024",
+    srcs = ["tests/authority_autostart_marker.rs"],
+    deps = [
+        ":firma_run",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "sidecar_autostart_kill_on_drop_test",
+    crate = "sidecar_autostart_kill_on_drop",
+    crate_root = "tests/sidecar_autostart_kill_on_drop.rs",
+    edition = "2024",
+    srcs = ["tests/sidecar_autostart_kill_on_drop.rs"],
+    deps = [
+        ":firma_run",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
+    name = "sidecar_autostart_timeout_test",
+    crate = "sidecar_autostart_timeout",
+    crate_root = "tests/sidecar_autostart_timeout.rs",
+    edition = "2024",
+    srcs = ["tests/sidecar_autostart_timeout.rs"],
+    deps = [
+        ":firma_run",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "sidecar_autostart_env_sandbox_id_test",
+    crate = "sidecar_autostart_env_sandbox_id",
+    crate_root = "tests/sidecar_autostart_env_sandbox_id.rs",
+    edition = "2024",
+    srcs = ["tests/sidecar_autostart_env_sandbox_id.rs"],
+    deps = [
+        ":firma_run",
+        "//third-party:tempfile",
+    ],
+)
+
+native.rust_test(
+    name = "sidecar_config_merge_test",
+    crate = "sidecar_config_merge",
+    crate_root = "tests/sidecar_config_merge.rs",
+    edition = "2024",
+    srcs = ["tests/sidecar_config_merge.rs"],
+    deps = [
+        ":firma_run",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
+    name = "authority_autostart_ready_scrape_test",
+    crate = "authority_autostart_ready_scrape",
+    crate_root = "tests/authority_autostart_ready_scrape.rs",
+    edition = "2024",
+    srcs = ["tests/authority_autostart_ready_scrape.rs"],
+    deps = [":firma_run"],
+)
+
+native.rust_test(
+    name = "sidecar_autostart_ready_scrape_test",
+    crate = "sidecar_autostart_ready_scrape",
+    crate_root = "tests/sidecar_autostart_ready_scrape.rs",
+    edition = "2024",
+    srcs = ["tests/sidecar_autostart_ready_scrape.rs"],
+    deps = [":firma_run"],
+)
+
+native.rust_test(
+    name = "unit_tests",
+    crate = "firma_run",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    env = {"RUST_TEST_THREADS": "1"},
+    srcs = glob([
+        "src/**/*.rs",
+        "src/backend/fixtures/**/*",
+        "src/resources/**/*",
+        "seccomp/**/*.toml",
+    ]),
+    deps = [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-protobuf:firma_protobuf",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//third-party:anyhow",
+        "//third-party:chrono",
+        "//third-party:ctrlc",
+        "//third-party:dialoguer",
+        "//third-party:fs-err",
+        "//third-party:hex",
+        "//third-party:nix",
+        "//third-party:p256",
+        "//third-party:pretty_assertions",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:sha2",
+        "//third-party:tempfile",
+        "//third-party:thiserror",
+        "//third-party:tokio",
+        "//third-party:toml",
+        "//third-party:toml_edit",
+        "//third-party:tonic",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+        "//third-party:uuid",
+        "//third-party:wait-timeout",
+    ],
+)

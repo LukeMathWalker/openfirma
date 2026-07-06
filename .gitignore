@@ -73,3 +73,7 @@ codecov.json
 !.skills/build
 .claude/*.lock
 .claude/specs/
+
+buck-out
+.buckconfig.local
+third-party/.cargo/

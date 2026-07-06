@@ -1,0 +1,39 @@
+load("@prelude//:prelude.bzl", "native")
+
+E2E_SNAPSHOT_SRCS = glob(["snapshots/**/*"])
+
+genrule(
+    name = "e2e-manifest-dir",
+    srcs = E2E_SNAPSHOT_SRCS,
+    out = "manifest_dir",
+    cmd = "mkdir -p $OUT/tests/e2e/snapshots && for src in $SRCS; do rel=${src#*snapshots/}; dir=${rel%/*}; if [ $dir = $rel ]; then dir=.; fi; mkdir -p $OUT/tests/e2e/snapshots/$dir; cp $src $OUT/tests/e2e/snapshots/$rel; done",
+)
+
+native.rust_test(
+    name = "main_test",
+    crate = "e2e",
+    crate_root = "main.rs",
+    edition = "2024",
+    env = {
+        "CARGO_MANIFEST_DIR": "$(location :e2e-manifest-dir)",
+        "CARGO_BIN_EXE_firma": "$(location //crates/firma:firma)",
+    },
+    srcs = glob([
+        "**/*.rs",
+    ]) + E2E_SNAPSHOT_SRCS,
+    deps = [
+        "//crates/firma-sidecar:firma_sidecar",
+        "//third-party:anyhow",
+        "//third-party:fs-err",
+        "//third-party:insta",
+        "//third-party:regex",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:strum",
+        "//third-party:tempfile",
+        "//third-party:thiserror",
+        "//third-party:tokio",
+        "//third-party:toml",
+        "//third-party:wiremock",
+    ],
+)

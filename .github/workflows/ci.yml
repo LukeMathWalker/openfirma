@@ -10,6 +10,11 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   audit:
@@ -19,16 +24,12 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - run: command -v cargo-audit || cargo binstall -y --force --locked cargo-audit@$CARGO_AUDIT_VERSION
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: cargo audit --deny warnings
+      - uses: ./.github/actions/setup-buck-just
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          buck2: "false"
+          supply-chain-tools: "true"
+      - run: just audit
 
   zizmor:
     name: Actions Lint
@@ -51,9 +52,12 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: EmbarkStudios/cargo-deny-action@bb137d7af7e4fb67e5f82a49c4fce4fad40782fe # v2.0.20
+      - uses: ./.github/actions/setup-buck-just
         with:
-          command: check licenses bans sources
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          buck2: "false"
+          supply-chain-tools: "true"
+      - run: just deny
 
   trufflehog:
     name: Secret Scan
@@ -74,19 +78,26 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      # dprint formats TOML + Markdown + Rust via its exec plugin, which shells
-      # out to rustfmt, so the toolchain must be present. setup-rust-toolchain
-      # installs it from rust-toolchain.toml (including the rustfmt component).
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+      - uses: ./.github/actions/setup-buck-just
         with:
-          cache: false
-          rustflags: ""
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - uses: dprint/check@9cb3a2b17a8e606d37aae341e49df3654933fc23 # v2.3
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          buck2: "false"
+          dprint: "true"
+      - run: just fmt
+
+  reindeer:
+    name: Reindeer Freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          dprint-version: ${{ env.DPRINT_VERSION }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup-buck-just
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          buck2: "false"
+          reindeer: "true"
+      - run: just reindeer-check
 
   docs:
     name: Docs
@@ -96,24 +107,25 @@ jobs:
         with:
           submodules: recursive
           persist-credentials: false
-
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+      - uses: ./.github/actions/setup-buck-just
         with:
-          rustflags: ""
-
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          buck2: "false"
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build docs with warnings denied
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+      - name: Enable corepack
+        run: corepack enable
+      - name: Install cargo-doc-md
         env:
-          RUSTDOCFLAGS: -D warnings
-        run: cargo doc --workspace --no-deps
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: command -v cargo-doc-md || cargo binstall -y --force --locked cargo-doc-md@$CARGO_DOC_MD_VERSION
+      - name: Build docs
+        env:
+          ASTRO_TELEMETRY_DISABLED: "1"
+        run: just docs-build
 
   check:
     name: Check (${{ matrix.os }})
@@ -127,66 +139,80 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
+      - uses: ./.github/actions/setup-buck-just
         with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clippy
-        id: clippy
+      - name: Windows Buck2 diagnostics
+        if: runner.os == 'Windows'
         continue-on-error: true
-        run: cargo clippy --workspace -- -D warnings
-
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install cargo-nextest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          command -v cargo-nextest || cargo binstall -y --force --locked cargo-nextest@$CARGO_NEXTEST_VERSION
         shell: bash
+        run: |
+          set +e
+          rustc -vV
+          bash scripts/buck-target-platform.sh
+          printf 'BUCK2_BIN=%s\n' "${BUCK2_BIN:-}"
+          printf 'BUCK2_ARG0=%s\n' "${BUCK2_ARG0:-}"
+          printf 'MSYS2_ARG_CONV_EXCL=%s\n' "${MSYS2_ARG_CONV_EXCL:-}"
+          type -a "$BUCK2_BIN"
+          file "$BUCK2_BIN" || true
+          file "$BUCK2_ARG0" || true
+          "$BUCK2_BIN" --version
+          printf 'buck2 --version status=%s\n' "$?"
+          "$BUCK2_BIN" root
+          printf 'buck2 root status=%s\n' "$?"
+          "$BUCK2_BIN" uquery 'kind("rust_(binary|library|proc_macro)", //crates/...)'
+          printf 'buck2 uquery status=%s\n' "$?"
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: just --verbose build
+
+      - name: Buck2 diagnostics after build
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh build
+
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: just lint
+
+      - name: Buck2 diagnostics after lint
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh lint
 
       - name: Test
         id: test
         continue-on-error: true
-        run: cargo nextest run --workspace --no-fail-fast
-      # nextest runs unit + integration tests; it does not run doctests, so
-      # those run separately via `cargo test --doc`.
-      - name: Doctests
-        id: doctest
-        continue-on-error: true
-        run: cargo test --workspace --doc
+        run: just test
+
+      - name: Buck2 diagnostics after test
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh test
 
       - name: Fail if any verification step failed
-        if: ${{ steps.clippy.outcome == 'failure' || steps.test.outcome == 'failure' || steps.doctest.outcome == 'failure' }}
+        if: ${{ steps.build.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.test.outcome == 'failure' }}
         shell: bash
         env:
-          CLIPPY_OUTCOME: ${{ steps.clippy.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
           TEST_OUTCOME: ${{ steps.test.outcome }}
-          DOCTEST_OUTCOME: ${{ steps.doctest.outcome }}
         run: |
           has_failures=false
 
-          if [[ "$CLIPPY_OUTCOME" == 'failure' ]]; then
-            printf 'Clippy failed, check the output of its step to troubleshoot the failure.\n'
+          if [[ "$BUILD_OUTCOME" == 'failure' ]]; then
+            printf 'Buck build failed, check the output of its step to troubleshoot the failure.\n'
+            has_failures=true
+          fi
+
+          if [[ "$LINT_OUTCOME" == 'failure' ]]; then
+            printf 'Buck Clippy failed, check the output of its step to troubleshoot the failure.\n'
             has_failures=true
           fi
 
           if [[ "$TEST_OUTCOME" == 'failure' ]]; then
-            printf 'Test failed, check the output of its step to troubleshoot the failure.\n'
-            has_failures=true
-          fi
-
-          if [[ "$DOCTEST_OUTCOME" == 'failure' ]]; then
-            printf 'Doctests failed, check the output of its step to troubleshoot the failure.\n'
+            printf 'Buck tests failed, check the output of its step to troubleshoot the failure.\n'
             has_failures=true
           fi
 
@@ -205,42 +231,31 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
+      - uses: ./.github/actions/setup-buck-just
         with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install cargo-llvm-cov
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          command -v cargo-llvm-cov || cargo binstall -y --force --locked cargo-llvm-cov@$CARGO_LLVM_COV_VERSION
+      - name: Configure LLVM coverage tools
         shell: bash
-      - name: Install cargo-nextest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          command -v cargo-nextest || cargo binstall -y --force --locked cargo-nextest@$CARGO_NEXTEST_VERSION
-        shell: bash
+          rustup component add llvm-tools-preview
+          host="$(rustc -vV | sed -n 's/^host: //p')"
+          llvm_tools="$(rustc --print sysroot)/lib/rustlib/$host/bin"
+          printf 'LLVM_PROFDATA=%s/llvm-profdata\n' "$llvm_tools" >> "$GITHUB_ENV"
+          printf 'LLVM_COV=%s/llvm-cov\n' "$llvm_tools" >> "$GITHUB_ENV"
 
       - name: Generate coverage
-        run: cargo llvm-cov nextest --workspace --all-features --codecov --output-path codecov.json
+        run: just coverage
+
+      - name: Buck2 diagnostics after coverage
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           use_oidc: true
-          files: codecov.json
+          files: target/buck-coverage/lcov.info
           disable_search: true
           fail_ci_if_error: true
 
@@ -251,27 +266,12 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-
-      - id: nightly
-        run: echo "toolchain=$(cat .rust-nightly)" >> "$GITHUB_OUTPUT"
-
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+      - uses: ./.github/actions/setup-buck-just
         with:
-          toolchain: ${{ steps.nightly.outputs.toolchain }}
-          rustflags: ""
-          cache-workspaces: fuzz -> fuzz/target
-
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check fuzz targets
-        env:
-          NIGHTLY: ${{ steps.nightly.outputs.toolchain }}
-        run: cargo "+$NIGHTLY" check
-        working-directory: fuzz
+        run: just fuzz-check
+
+      - name: Buck2 diagnostics after fuzz-check
+        if: always()
+        run: bash scripts/ci/buck2-diagnostics.sh fuzz-check

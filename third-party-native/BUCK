@@ -1,0 +1,21 @@
+cxx_library(
+    name = "psm_s-windows-x86_64",
+    srcs = ["psm/x86_64_windows_gnu.s"],
+    include_directories = ["psm"],
+    compiler_flags = ["--target=x86_64-pc-windows-msvc", "-xassembler-with-cpp"],
+    preferred_linkage = "static",
+    static_library_basename = "psm_s",
+    supports_stripping = False,
+    target_compatible_with = ["prelude//os/constraints:windows"],
+    visibility = ["PUBLIC"],
+)
+
+cxx_library(
+    name = "stacker-windows",
+    srcs = ["stacker/windows.c"],
+    preferred_linkage = "static",
+    static_library_basename = "stacker",
+    supports_stripping = False,
+    target_compatible_with = ["prelude//os/constraints:windows"],
+    visibility = ["PUBLIC"],
+)

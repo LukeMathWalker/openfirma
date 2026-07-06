@@ -17,8 +17,12 @@ MODE="${1:-hero}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEMO="$ROOT/examples/demo"
 LOG_DIR="$DEMO/logs"
-TARGET_DIR="$ROOT/target/release"
 LOOPBACK_HOST="127.0.0.1"
+BUCK_TARGET_PLATFORM="${BUCK_TARGET_PLATFORM:-$(bash "$ROOT/scripts/buck-target-platform.sh")}"
+BUCK2_BIN="${BUCK2_BIN:-buck2}"
+FIRMA_BIN=""
+FIXTURE_BIN=""
+FIXTURE_CLIENT_BIN=""
 
 mkdir -p "$LOG_DIR"
 
@@ -85,6 +89,15 @@ poll_http() {
   return 1
 }
 
+abs_path() {
+  local path="$1"
+  if [[ "$path" = /* ]]; then
+    printf '%s\n' "$path"
+  else
+    printf '%s/%s\n' "$ROOT" "$path"
+  fi
+}
+
 ensure_authority_key() {
   local key="$DEMO/firma-authority.key"
   local pub="$DEMO/firma-authority.pub"
@@ -92,7 +105,7 @@ ensure_authority_key() {
     return
   fi
   echo "[demo] generating authority signing key"
-  (cd "$DEMO" && "$TARGET_DIR/firma" authority generate-key --output firma-authority.key)
+  (cd "$DEMO" && "$FIRMA_BIN" authority generate-key --output firma-authority.key)
 }
 
 ensure_authority_tls() {
@@ -104,7 +117,7 @@ ensure_authority_tls() {
     return
   fi
   echo "[demo] bootstrapping authority transport TLS material"
-  (cd "$DEMO" && "$TARGET_DIR/firma" authority init-tls --out-dir . --host "$LOOPBACK_HOST" --host localhost)
+  (cd "$DEMO" && "$FIRMA_BIN" authority init-tls --out-dir . --host "$LOOPBACK_HOST" --host localhost)
 }
 
 ensure_audit_key() {
@@ -127,7 +140,7 @@ ensure_capability_seed() {
   # a previous demo run, surfacing as Stage 1 "token expired" denies
   # on the next invocation.
   echo "[demo] issuing capability seed for demo-agent / demo-session"
-  (cd "$ROOT" && "$TARGET_DIR/firma" authority \
+  (cd "$ROOT" && "$FIRMA_BIN" authority \
     --config "$DEMO/firma.toml" \
     issue \
       --agent-id demo-agent \
@@ -146,8 +159,27 @@ ensure_revocations_file() {
 # ── Build ────────────────────────────────────────────────────────────────────
 
 echo "[demo] building release binaries"
-(cd "$ROOT" && cargo build --release \
-  -p firma -p firma-demo-fixture)
+while read -r target output; do
+  case "$target" in
+    root//crates/firma:firma)
+      FIRMA_BIN="$(abs_path "$output")"
+      ;;
+    root//crates/firma-demo-fixture:firma-demo-fixture)
+      FIXTURE_BIN="$(abs_path "$output")"
+      ;;
+    root//crates/firma-demo-fixture:firma-demo-fixture-client)
+      FIXTURE_CLIENT_BIN="$(abs_path "$output")"
+      ;;
+  esac
+done < <(cd "$ROOT" && "$BUCK2_BIN" build --show-output --target-platforms "$BUCK_TARGET_PLATFORM" \
+  //crates/firma:firma \
+  //crates/firma-demo-fixture:firma-demo-fixture \
+  //crates/firma-demo-fixture:firma-demo-fixture-client)
+
+if [[ -z "$FIRMA_BIN" || -z "$FIXTURE_BIN" || -z "$FIXTURE_CLIENT_BIN" ]]; then
+  echo "[demo] failed to resolve Buck-built demo binaries" >&2
+  exit 1
+fi
 
 mkdir -p "$DEMO/firma-ca"
 ensure_revocations_file
@@ -158,7 +190,7 @@ ensure_audit_key
 # ── Authority ────────────────────────────────────────────────────────────────
 
 echo "[demo] starting firma authority"
-(cd "$ROOT" && exec "$TARGET_DIR/firma" authority --config "$DEMO/firma.toml" \
+(cd "$ROOT" && exec "$FIRMA_BIN" authority --config "$DEMO/firma.toml" \
     >"$LOG_DIR/authority.log" 2>&1) &
 AUTH_PID=$!
 poll_tcp_loopback 50051 "authority gRPC :50051"
@@ -168,7 +200,7 @@ ensure_capability_seed
 # ── Sidecar ──────────────────────────────────────────────────────────────────
 
 echo "[demo] starting firma sidecar (log-filter=debug)"
-(cd "$ROOT" && exec "$TARGET_DIR/firma" --log-filter debug sidecar \
+(cd "$ROOT" && exec "$FIRMA_BIN" --log-filter debug sidecar \
     --config "$DEMO/firma.toml" \
     >"$LOG_DIR/sidecar.log" 2>&1) &
 SIDE_PID=$!
@@ -211,11 +243,11 @@ case "$MODE" in
     ;;
   ci)
     echo "[demo] starting firma-demo-fixture"
-    "$TARGET_DIR/firma-demo-fixture" --listen-addr "$LOOPBACK_HOST:9100" \
+    "$FIXTURE_BIN" --listen-addr "$LOOPBACK_HOST:9100" \
         >"$LOG_DIR/fixture.log" 2>&1 &
     FIX_PID=$!
     poll_http "http://$LOOPBACK_HOST:9100/_ping" "fixture /_ping"
-    "$TARGET_DIR/firma-demo-fixture-client" \
+    "$FIXTURE_CLIENT_BIN" \
         --proxy "http://$LOOPBACK_HOST:7474" \
         --target "http://$LOOPBACK_HOST:9100"
     ;;

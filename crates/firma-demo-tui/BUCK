@@ -1,0 +1,25 @@
+load("@prelude//rust:cargo_package.bzl", "cargo")
+
+cargo.rust_binary(
+    name = "firma-demo-tui",
+    crate = "firma_demo_tui",
+    crate_root = "src/main.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-stack:firma_stack",
+        "//third-party:ansi-to-tui",
+        "//third-party:anyhow",
+        "//third-party:clap",
+        "//third-party:crossterm",
+        "//third-party:ratatui",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:toml",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+        "//third-party:tui-markdown",
+    ],
+)

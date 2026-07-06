@@ -1,0 +1,86 @@
+name: Setup Buck Just
+description: Install the toolchain needed by Buck-backed just recipes.
+inputs:
+  github-token:
+    description: GitHub token used by setup actions and cargo-binstall.
+    required: true
+  buck2:
+    description: Install Buck2 for Buck-backed recipes.
+    required: false
+    default: "true"
+  dprint:
+    description: Install dprint for just fmt.
+    required: false
+    default: "false"
+  reindeer:
+    description: Install Reindeer for just reindeer-check.
+    required: false
+    default: "false"
+  supply-chain-tools:
+    description: Install cargo-audit and cargo-deny for just audit/deny.
+    required: false
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+      with:
+        rustflags: ""
+
+    - name: Load tool versions
+      shell: bash
+      run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
+
+    - name: Install protoc
+      uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
+      with:
+        version: ${{ env.PROTOC_VERSION }}
+        repo-token: ${{ inputs.github-token }}
+
+    - name: Install cargo-binstall
+      uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+
+    - name: Install recipe tools
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        DPRINT: ${{ inputs.dprint }}
+        REINDEER: ${{ inputs.reindeer }}
+        SUPPLY_CHAIN_TOOLS: ${{ inputs.supply-chain-tools }}
+      run: |
+        command -v just || cargo binstall -y --force --locked just@$JUST_VERSION
+        if [[ "$REINDEER" == "true" ]]; then
+          cargo install --force --locked --git https://github.com/facebookincubator/reindeer --rev "$BUCK_REINDEER_REV" reindeer
+        fi
+        if [[ "$DPRINT" == "true" ]] && ! command -v dprint >/dev/null 2>&1; then
+          curl -fsSL https://dprint.dev/install.sh | sh -s "$DPRINT_VERSION"
+          printf '%s/.dprint/bin\n' "$HOME" >> "$GITHUB_PATH"
+        fi
+        if [[ "$SUPPLY_CHAIN_TOOLS" == "true" ]]; then
+          command -v cargo-audit || cargo binstall -y --force --locked cargo-audit@$CARGO_AUDIT_VERSION
+          command -v cargo-deny || cargo binstall -y --force --locked cargo-deny@$CARGO_DENY_VERSION
+        fi
+
+    - name: Install Buck2
+      if: ${{ inputs.buck2 == 'true' }}
+      shell: bash
+      run: scripts/ci/install-buck2.sh
+
+    - name: Configure BuildBuddy cache
+      if: ${{ inputs.buck2 == 'true' && env.BUILD_BUDDY_API_KEY != '' }}
+      shell: bash
+      run: |
+        {
+          printf '[buck2]\n'
+          printf 'digest_algorithms = SHA256\n\n'
+          printf '[buck2_re_client]\n'
+          printf 'engine_address = grpc://remote.buildbuddy.io\n'
+          printf 'action_cache_address = grpc://remote.buildbuddy.io\n'
+          printf 'cas_address = grpc://remote.buildbuddy.io\n'
+          printf 'tls = true\n'
+          printf 'http_headers = x-buildbuddy-api-key:$BUILD_BUDDY_API_KEY\n\n'
+          printf '[build]\n'
+          printf 'execution_platforms = root//platforms:buildbuddy-cache\n'
+        } > .buckconfig.local

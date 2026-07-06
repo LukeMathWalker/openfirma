@@ -1,0 +1,86 @@
+load("@prelude//:prelude.bzl", "native")
+load("@prelude//rust:cargo_package.bzl", "cargo")
+
+cargo.rust_library(
+    name = "firma_config_loader",
+    crate = "firma_config_loader",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third-party:anyhow",
+        "//third-party:fs-err",
+        "//third-party:serde",
+        "//third-party:thiserror",
+        "//third-party:toml",
+    ],
+)
+
+cargo.rust_library(
+    name = "firma_config_loader_clap",
+    crate = "firma_config_loader",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    features = ["clap"],
+    srcs = glob(["src/**/*.rs"]),
+    visibility = ["PUBLIC"],
+    deps = [
+        "//third-party:anyhow",
+        "//third-party:clap",
+        "//third-party:fs-err",
+        "//third-party:serde",
+        "//third-party:thiserror",
+        "//third-party:toml",
+    ],
+)
+
+cargo.rust_library(
+    name = "firma_config_loader_test_utils",
+    crate = "firma_config_loader",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    features = ["test-utils"],
+    srcs = glob(["src/**/*.rs"]),
+    visibility = [],
+    deps = [
+        "//third-party:anyhow",
+        "//third-party:fs-err",
+        "//third-party:serde",
+        "//third-party:thiserror",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
+    name = "unit_tests",
+    crate = "firma_config_loader",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    srcs = glob(["src/**/*.rs"]),
+    deps = [
+        "//third-party:anyhow",
+        "//third-party:fs-err",
+        "//third-party:serde",
+        "//third-party:thiserror",
+        "//third-party:toml",
+    ],
+)
+
+native.rust_test(
+    name = "integration_test",
+    crate = "integration",
+    crate_root = "tests/integration/main.rs",
+    edition = "2024",
+    env = {
+        "NEXTEST": "1",
+        "RUST_TEST_THREADS": "1",
+    },
+    srcs = glob(["tests/integration/**/*.rs"]),
+    deps = [
+        ":firma_config_loader_test_utils",
+        "//third-party:fs-err",
+        "//third-party:tempfile",
+        "//third-party:toml",
+    ],
+)

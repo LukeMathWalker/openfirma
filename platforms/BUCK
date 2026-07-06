@@ -1,0 +1,123 @@
+load("@prelude//platforms:defs.bzl", "execution_platform", "host_configuration")
+load(":buildbuddy.bzl", "remote_cache_execution_platform")
+
+remote_cache_execution_platform(
+    name = "buildbuddy-cache",
+    cpu_configuration = host_configuration.cpu,
+    os_configuration = host_configuration.os,
+    use_windows_path_separators = host_info().os.is_windows,
+    visibility = ["PUBLIC"],
+)
+
+constraint_setting(
+    name = "rust-coverage",
+    visibility = ["PUBLIC"],
+)
+
+constraint_value(
+    name = "rust-coverage-enabled",
+    constraint_setting = ":rust-coverage",
+    visibility = ["PUBLIC"],
+)
+
+config_setting(
+    name = "rust-coverage-enabled-setting",
+    constraint_values = [":rust-coverage-enabled"],
+    visibility = ["PUBLIC"],
+)
+
+platform(
+    name = "aarch64-apple-darwin",
+    constraint_values = [
+        "prelude//os/constraints:macos",
+        "prelude//cpu/constraints:arm64",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+platform(
+    name = "aarch64-apple-darwin-coverage",
+    constraint_values = [
+        "prelude//os/constraints:macos",
+        "prelude//cpu/constraints:arm64",
+        ":rust-coverage-enabled",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+platform(
+    name = "x86_64-apple-darwin",
+    constraint_values = [
+        "prelude//os/constraints:macos",
+        "prelude//cpu/constraints:x86_64",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+platform(
+    name = "x86_64-apple-darwin-coverage",
+    constraint_values = [
+        "prelude//os/constraints:macos",
+        "prelude//cpu/constraints:x86_64",
+        ":rust-coverage-enabled",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+config_setting(
+    name = "macos-arm64",
+    constraint_values = [
+        "prelude//os/constraints:macos",
+        "prelude//cpu/constraints:arm64",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+config_setting(
+    name = "macos-x86_64",
+    constraint_values = [
+        "prelude//os/constraints:macos",
+        "prelude//cpu/constraints:x86_64",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+platform(
+    name = "x86_64-unknown-linux-gnu-coverage",
+    constraint_values = [
+        "prelude//os/constraints:linux",
+        "prelude//cpu/constraints:x86_64",
+        "prelude//abi/constraints:gnu",
+        ":rust-coverage-enabled",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+platform(
+    name = "x86_64-pc-windows-msvc",
+    constraint_values = [
+        "prelude//os/constraints:windows",
+        "prelude//cpu/constraints:x86_64",
+        "prelude//abi/constraints:msvc",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+platform(
+    name = "x86_64-unknown-linux-gnu",
+    constraint_values = [
+        "prelude//os/constraints:linux",
+        "prelude//cpu/constraints:x86_64",
+        "prelude//abi/constraints:gnu",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+config_setting(
+    name = "windows-msvc",
+    constraint_values = [
+        "prelude//os/constraints:windows",
+        "prelude//abi/constraints:msvc",
+    ],
+    visibility = ["PUBLIC"],
+)

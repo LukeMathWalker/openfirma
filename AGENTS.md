@@ -7,13 +7,20 @@ Guidance for coding agents working in this repository.
 ```bash
 just check # Run all local verification checks (CI parity)
 just fmt # dprint check (TOML + Markdown + Rust)
-just lint # cargo clippy --workspace -- -D warnings
-just test # cargo nextest run + cargo test --doc
-just build # cargo build --workspace
+just lint # Buck2 Clippy diagnostics
+just test # Buck2 unit/integration tests + Buck2 doctest subtargets
+just build # Buck2 build for first-party Rust targets
 ```
 
-Tests run via `cargo nextest` (process-per-test isolation); doctests run
-separately via `cargo test --doc` since nextest does not run them.
+Tests run through Buck2. Doctests use the Buck Rust prelude's `[doc]`
+subtargets and run separately from unit and integration tests.
+
+`just check` also verifies the Reindeer-generated third-party Buck graph is
+fresh via `reindeer buckify --stdout | diff -u third-party/BUCK -`.
+
+Buck-backed recipes default to the host target platform via
+`scripts/buck-target-platform.sh`. Set `BUCK_TARGET_PLATFORM` or
+`BUCK_COVERAGE_TARGET_PLATFORM` to override that detection.
 
 Requires `protoc` installed for protobuf compilation (`firma-protobuf` and
 `firma-grpc-interceptor-proto` both compile `.proto` files via
