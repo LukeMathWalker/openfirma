@@ -39,7 +39,9 @@ umask 077
 } >"$AUTH_FILE"
 
 if [[ -n "${GITHUB_ENV:-}" ]]; then
-  printf 'BAZEL_FLAGS=--config=buildbuddy\n' >>"$GITHUB_ENV"
+  bazel_flags="${BAZEL_FLAGS:-}"
+  bazel_flags="${bazel_flags:+$bazel_flags }--config=buildbuddy"
+  printf 'BAZEL_FLAGS=%s\n' "$bazel_flags" >>"$GITHUB_ENV"
 fi
 
 printf 'BuildBuddy remote cache enabled for Bazel commands.\n'

@@ -4,6 +4,10 @@ common --enable_bzlmod
 # This file must not be checked in; CI generates it from BUILD_BUDDY_API_KEY.
 try-import %workspace%/.bazelrc.buildbuddy.auth
 
+# Optional local/CI Windows C++ toolchain pinning. CI generates this from
+# runner-specific Visual Studio, Windows SDK, LLVM, and shell paths.
+try-import %workspace%/.bazelrc.windows.local
+
 # Keep Bazel outputs out of source directories unless explicitly requested.
 build --experimental_convenience_symlinks=ignore
 
