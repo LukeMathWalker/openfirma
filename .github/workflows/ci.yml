@@ -13,24 +13,6 @@ env:
 
 jobs:
   audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-      - uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - run: command -v cargo-audit || cargo binstall -y --force --locked cargo-audit@$CARGO_AUDIT_VERSION
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: cargo audit --deny warnings
-
-  bazel-audit:
     name: Bazel Security Audit
     runs-on: ubuntu-latest
     steps:
@@ -56,19 +38,6 @@ jobs:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
         run: ./scripts/ci/configure-buildbuddy.sh
         shell: bash
-      - name: Restore Bazel repository cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: |
-            ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
-          restore-keys: |
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
-      - name: Configure Bazel repository cache
-        run: ./scripts/ci/configure-bazel-repository-cache.sh
-        shell: bash
-
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
         env:
@@ -99,17 +68,6 @@ jobs:
         run: zizmor .github/workflows/
 
   deny:
-    name: Licenses & Bans
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-      - uses: EmbarkStudios/cargo-deny-action@bb137d7af7e4fb67e5f82a49c4fce4fad40782fe # v2.0.20
-        with:
-          command: check licenses bans sources
-
-  bazel-deny:
     name: Bazel Licenses & Bans
     runs-on: ubuntu-latest
     steps:
@@ -135,19 +93,6 @@ jobs:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
         run: ./scripts/ci/configure-buildbuddy.sh
         shell: bash
-      - name: Restore Bazel repository cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: |
-            ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
-          restore-keys: |
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
-      - name: Configure Bazel repository cache
-        run: ./scripts/ci/configure-bazel-repository-cache.sh
-        shell: bash
-
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
         env:
@@ -163,7 +108,7 @@ jobs:
       - name: Run Bazel deny
         run: just bazel-deny
 
-  bazel-lockfiles:
+  lockfiles:
     name: Bazel Lockfiles
     runs-on: ubuntu-latest
     steps:
@@ -184,19 +129,6 @@ jobs:
         run: |
           npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
           bazel ${BAZEL_STARTUP_FLAGS:-} version
-      - name: Restore Bazel repository cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: |
-            ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
-          restore-keys: |
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
-      - name: Configure Bazel repository cache
-        run: ./scripts/ci/configure-bazel-repository-cache.sh
-        shell: bash
-
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
         env:
@@ -243,113 +175,7 @@ jobs:
         with:
           dprint-version: ${{ env.DPRINT_VERSION }}
 
-  docs:
-    name: Docs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          submodules: recursive
-          persist-credentials: false
-
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-        with:
-          rustflags: ""
-
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build docs with warnings denied
-        env:
-          RUSTDOCFLAGS: -D warnings
-        run: cargo doc --workspace --no-deps
-
   check:
-    name: Check (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Clippy
-        id: clippy
-        continue-on-error: true
-        run: cargo clippy --workspace -- -D warnings
-
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install cargo-nextest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          command -v cargo-nextest || cargo binstall -y --force --locked cargo-nextest@$CARGO_NEXTEST_VERSION
-        shell: bash
-
-      - name: Test
-        id: test
-        continue-on-error: true
-        run: cargo nextest run --workspace --no-fail-fast
-      # nextest runs unit + integration tests; it does not run doctests, so
-      # those run separately via `cargo test --doc`.
-      - name: Doctests
-        id: doctest
-        continue-on-error: true
-        run: cargo test --workspace --doc
-
-      - name: Fail if any verification step failed
-        if: ${{ steps.clippy.outcome == 'failure' || steps.test.outcome == 'failure' || steps.doctest.outcome == 'failure' }}
-        shell: bash
-        env:
-          CLIPPY_OUTCOME: ${{ steps.clippy.outcome }}
-          TEST_OUTCOME: ${{ steps.test.outcome }}
-          DOCTEST_OUTCOME: ${{ steps.doctest.outcome }}
-        run: |
-          has_failures=false
-
-          if [[ "$CLIPPY_OUTCOME" == 'failure' ]]; then
-            printf 'Clippy failed, check the output of its step to troubleshoot the failure.\n'
-            has_failures=true
-          fi
-
-          if [[ "$TEST_OUTCOME" == 'failure' ]]; then
-            printf 'Test failed, check the output of its step to troubleshoot the failure.\n'
-            has_failures=true
-          fi
-
-          if [[ "$DOCTEST_OUTCOME" == 'failure' ]]; then
-            printf 'Doctests failed, check the output of its step to troubleshoot the failure.\n'
-            has_failures=true
-          fi
-
-          if [[ "$has_failures" == 'true' ]]; then
-            exit 1
-          fi
-
-  bazel-check:
     name: Bazel Check (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -382,18 +208,6 @@ jobs:
         env:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
         run: ./scripts/ci/configure-buildbuddy.sh
-        shell: bash
-      - name: Restore Bazel repository cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: |
-            ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
-          restore-keys: |
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
-      - name: Configure Bazel repository cache
-        run: ./scripts/ci/configure-bazel-repository-cache.sh
         shell: bash
 
       - name: Install cargo-binstall
@@ -459,56 +273,6 @@ jobs:
           fi
 
   coverage:
-    name: Coverage
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install cargo-llvm-cov
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          command -v cargo-llvm-cov || cargo binstall -y --force --locked cargo-llvm-cov@$CARGO_LLVM_COV_VERSION
-        shell: bash
-      - name: Install cargo-nextest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          command -v cargo-nextest || cargo binstall -y --force --locked cargo-nextest@$CARGO_NEXTEST_VERSION
-        shell: bash
-
-      - name: Generate coverage
-        run: cargo llvm-cov nextest --workspace --all-features --codecov --output-path codecov.json
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        with:
-          use_oidc: true
-          files: codecov.json
-          disable_search: true
-          fail_ci_if_error: true
-
-  bazel-coverage:
     name: Bazel Coverage
     runs-on: ubuntu-latest
     permissions:
@@ -537,18 +301,6 @@ jobs:
           BUILD_BUDDY_API_KEY: ${{ secrets.BUILD_BUDDY_API_KEY }}
         run: ./scripts/ci/configure-buildbuddy.sh
         shell: bash
-      - name: Restore Bazel repository cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: |
-            ${{ runner.temp }}/bazel-repository-cache
-          key: bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles('.bazelversion', 'MODULE.bazel', 'MODULE.bazel.lock', 'Cargo.lock', 'bazel/**/*.patch') }}
-          restore-keys: |
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
-            bazel-repositories-${{ runner.os }}-${{ runner.arch }}-
-      - name: Configure Bazel repository cache
-        run: ./scripts/ci/configure-bazel-repository-cache.sh
-        shell: bash
 
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@732870f031d2fb36309d0deaf36abcc704a7be65 # v1.20.1
@@ -570,35 +322,3 @@ jobs:
           files: bazel-coverage.lcov
           disable_search: true
           fail_ci_if_error: true
-
-  fuzz-check:
-    name: Fuzz targets (check)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - id: nightly
-        run: echo "toolchain=$(cat .rust-nightly)" >> "$GITHUB_OUTPUT"
-
-      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
-        with:
-          toolchain: ${{ steps.nightly.outputs.toolchain }}
-          rustflags: ""
-          cache-workspaces: fuzz -> fuzz/target
-
-      - name: Load tool versions
-        shell: bash
-        run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check fuzz targets
-        env:
-          NIGHTLY: ${{ steps.nightly.outputs.toolchain }}
-        run: cargo "+$NIGHTLY" check
-        working-directory: fuzz

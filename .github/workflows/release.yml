@@ -26,33 +26,21 @@ jobs:
         include:
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-latest
-            bazel_config: release-linux-x86_64-musl
-            archive_target: firma_unix_archive
             archive_ext: tar.gz
           - target: aarch64-unknown-linux-musl
-            runner: ubuntu-latest
-            bazel_config: release-linux-aarch64-musl
-            archive_target: firma_unix_archive
+            runner: ubuntu-24.04-arm
             archive_ext: tar.gz
           - target: x86_64-apple-darwin
             runner: macos-latest
-            bazel_config: release-darwin-x86_64
-            archive_target: firma_unix_archive
             archive_ext: tar.gz
           - target: aarch64-apple-darwin
             runner: macos-latest
-            bazel_config: release-darwin-aarch64
-            archive_target: firma_unix_archive
             archive_ext: tar.gz
           - target: x86_64-pc-windows-msvc
             runner: windows-2025
-            bazel_config: release-windows-x86_64-msvc
-            archive_target: firma_windows_archive
             archive_ext: zip
           - target: aarch64-pc-windows-msvc
             runner: windows-2025
-            bazel_config: release-windows-aarch64-msvc
-            archive_target: firma_windows_archive
             archive_ext: zip
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -70,58 +58,126 @@ jobs:
           fi
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
 
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        with:
+          target: ${{ matrix.target }}
+          cache: false
+          rustflags: ""
+
       - name: Load tool versions
         shell: bash
         run: grep -E '^[A-Z0-9_]+=' tool-versions.env >> "$GITHUB_ENV"
-      - name: Shorten Bazel output root on Windows
-        if: runner.os == 'Windows'
-        shell: bash
-        run: printf 'BAZEL_STARTUP_FLAGS=--output_user_root=D:/bzl\n' >> "$GITHUB_ENV"
-      - name: Set up Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - name: Install protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          package-manager-cache: false
-          registry-url: https://registry.npmjs.org
-      - name: Install Bazelisk
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Expose MSVC environment
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          switch ("${{ matrix.target }}") {
+            "x86_64-pc-windows-msvc" {
+              $TargetArch = "x64"
+              $RequiredComponent = "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+            }
+            "aarch64-pc-windows-msvc" {
+              $TargetArch = "arm64"
+              $RequiredComponent = "Microsoft.VisualStudio.Component.VC.Tools.ARM64"
+            }
+            default { throw "Unsupported Windows target: ${{ matrix.target }}" }
+          }
+
+          $VsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-not (Test-Path $VsWhere)) {
+            throw "vswhere.exe not found"
+          }
+
+          $InstallPath = & $VsWhere -latest -products * -requires $RequiredComponent -property installationPath 2>$null
+          if (-not $InstallPath) {
+            throw "Could not locate a Visual Studio installation with component $RequiredComponent"
+          }
+
+          $VsDevCmd = Join-Path $InstallPath "Common7\Tools\VsDevCmd.bat"
+          if (-not (Test-Path $VsDevCmd)) {
+            throw "VsDevCmd.bat not found at $VsDevCmd"
+          }
+
+          $varsToExport = @(
+            "INCLUDE",
+            "LIB",
+            "LIBPATH",
+            "PATH",
+            "UCRTVersion",
+            "UniversalCRTSdkDir",
+            "VCINSTALLDIR",
+            "VCToolsInstallDir",
+            "WindowsLibPath",
+            "WindowsSdkBinPath",
+            "WindowsSdkDir",
+            "WindowsSDKLibVersion",
+            "WindowsSDKVersion"
+          )
+          $envLines = & cmd.exe /c ('"{0}" -no_logo -arch={1} -host_arch=x64 >nul && set' -f $VsDevCmd, $TargetArch)
+          foreach ($line in $envLines) {
+            if ($line -notmatch "^(.*?)=(.*)$") {
+              continue
+            }
+
+            $name = $Matches[1]
+            $value = $Matches[2]
+            if ($varsToExport -contains $name) {
+              if ($name -ieq "Path") {
+                $name = "PATH"
+              }
+              "$name=$value" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            }
+          }
+
+      - name: Install musl tools
+        if: contains(matrix.target, 'unknown-linux-musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      - name: Configure musl linker
+        if: contains(matrix.target, 'unknown-linux-musl')
         shell: bash
         run: |
-          npm install -g @bazel/bazelisk@$BAZELISK_VERSION --registry=https://registry.npmjs.org/
-          bazel ${BAZEL_STARTUP_FLAGS:-} version
+          target_env="CARGO_TARGET_${{ matrix.target }}_LINKER"
+          target_env="${target_env^^}"
+          target_env="${target_env//-/_}"
+          printf '%s=musl-gcc\n' "$target_env" >> "$GITHUB_ENV"
 
-      - name: Build release artifact
+      - name: Build with cargo
+        run: cargo build --release --target ${{ matrix.target }} --bin firma
+
+      - name: Package (unix)
+        if: matrix.archive_ext == 'tar.gz'
         shell: bash
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          bazel ${BAZEL_STARTUP_FLAGS:-} build --config=${{ matrix.bazel_config }} //release:${{ matrix.archive_target }}
-
           mkdir -p dist
-          archive=$(bazel ${BAZEL_STARTUP_FLAGS:-} cquery --config=${{ matrix.bazel_config }} --output=files //release:${{ matrix.archive_target }})
-          if [[ "$(printf '%s\n' "$archive" | wc -l | tr -d ' ')" != "1" ]]; then
-            printf 'expected exactly one Bazel archive output, got:\n%s\n' "$archive" >&2
-            exit 1
-          fi
-          execroot=$(bazel ${BAZEL_STARTUP_FLAGS:-} info execution_root)
-          if [[ "$archive" != /* && ! "$archive" =~ ^[A-Za-z]: ]]; then
-            archive="$execroot/$archive"
-          fi
-          name="firma-${VERSION}-${{ matrix.target }}.${{ matrix.archive_ext }}"
-          cp "$archive" "dist/$name"
-          if command -v python3 >/dev/null 2>&1; then
-            python_bin=python3
+          NAME="firma-${VERSION}-${{ matrix.target }}"
+          tar -czf "dist/${NAME}.tar.gz" -C "target/${{ matrix.target }}/release" firma
+          if command -v sha256sum >/dev/null 2>&1; then
+            (cd dist && sha256sum "${NAME}.tar.gz" > "${NAME}.tar.gz.sha256")
           else
-            python_bin=python
+            (cd dist && shasum -a 256 "${NAME}.tar.gz" > "${NAME}.tar.gz.sha256")
           fi
-          "$python_bin" - "dist/$name" > "dist/$name.sha256" <<'PY'
-          import hashlib
-          import pathlib
-          import sys
 
-          path = pathlib.Path(sys.argv[1])
-          digest = hashlib.sha256(path.read_bytes()).hexdigest()
-          print(f"{digest}  {path.name}")
-          PY
+      - name: Package (windows)
+        if: matrix.archive_ext == 'zip'
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $name = "firma-$($env:VERSION)-${{ matrix.target }}"
+          $bin = "target/${{ matrix.target }}/release/firma.exe"
+          Compress-Archive -Path $bin -DestinationPath "dist/$name.zip" -Force
+          $hash = (Get-FileHash -Algorithm SHA256 "dist/$name.zip").Hash.ToLower()
+          "$hash  $name.zip" | Out-File -Encoding ascii "dist/$name.zip.sha256"
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

@@ -70,13 +70,15 @@ cargo install --path crates/firma --locked
 ```
 
 The repository is migrating to Bazel while keeping Cargo metadata and
-Cargo-native tooling compatible. For development, `just check` remains the
-Cargo-backed CI-parity command. To exercise the Bazel graph that has been
-ported so far, run:
+Cargo-native tooling compatible. Pull-request Rust verification runs through the
+Bazel graph that has been ported so far:
 
 ```bash
 just bazel-check
 ```
+
+For Cargo-native local verification, run `just check`. CI runs Cargo-native
+tests periodically on `main` while Bazel is the PR-time Rust verification path.
 
 ### Quickstart
 

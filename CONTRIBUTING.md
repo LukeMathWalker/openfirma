@@ -6,7 +6,7 @@ Thank you for your interest in contributing to OpenFirma! We'd love to have you 
 - [Issues](#issues)
 - [Pull Requests](#pull-requests)
 - [Bazel Dependency Lockfiles](#bazel-dependency-lockfiles)
-- [Bazel Release Artifacts](#bazel-release-artifacts)
+- [Release Artifacts](#release-artifacts)
 
 ## Getting Started
 
@@ -37,13 +37,15 @@ We actively welcome your Pull Requests! A couple of things to keep in mind befor
 - If you're new, we encourage you to take a look at issues tagged with [good first issue](https://github.com/firma-ai/openfirma/labels/good%20first%20issue).
 - If you're submitting a new feature, please open an [issue](https://github.com/firma-ai/openfirma/issues/new) first to discuss it before opening a PR.
 
-Before submitting your PR, please run these checks locally:
+Before submitting your PR, please run the Bazel verification path locally:
 
 ```bash
-just check     # fmt + lint + test + build + audit + dependency check
+just bazel-check # Build, test, lint, audit, and deny through Bazel
 ```
 
-Running this before you create the PR will help reduce back and forth during review.
+`just check` remains useful for Cargo-native local verification. CI runs the
+Bazel path on pull requests and runs Cargo-native test coverage periodically on
+`main`.
 
 ## Bazel Dependency Lockfiles
 
@@ -94,27 +96,22 @@ Windows gnullvm toolchain for Windows runners. The `windows-cross` configuration
 keeps the execution platform on the local host so build tools run on macOS or
 Linux while targets are built for Windows gnullvm.
 
-## Bazel Release Artifacts
+## Release Artifacts
 
-Release archives are built with Bazel through the `//release` package. The Unix
-targets produce `firma.tar.gz` with a `firma` binary at the archive root, and the
-Windows targets produce `firma.zip` with `firma.exe` at the archive root. The
-release workflow renames those stable Bazel outputs to the versioned GitHub
-release asset names.
+Release archives are built by the `Release` workflow with Cargo-native platform
+tooling. Linux aarch64 builds run on GitHub's native ARM64 Ubuntu runner instead
+of using `cross`; Windows builds run on Windows runners with an explicit MSVC
+developer environment.
 
-```bash
-bazel build --config=release-linux-x86_64-musl //release:firma_unix_archive
-bazel build --config=release-linux-aarch64-musl //release:firma_unix_archive
-bazel build --config=release-darwin-x86_64 //release:firma_unix_archive
-bazel build --config=release-darwin-aarch64 //release:firma_unix_archive
-bazel build --config=release-windows-x86_64-msvc //release:firma_windows_archive
-bazel build --config=release-windows-aarch64-msvc //release:firma_windows_archive
-```
+The workflow publishes versioned assets with these names:
 
-The Windows MSVC release configurations are intended to run on Windows hosts and
-may use the runner's installed MSVC toolchain and Windows SDK. The gnullvm
-`windows` and `windows-cross` configurations remain separate from release MSVC
-artifacts.
+- `firma-${VERSION}-${target}.tar.gz` for Linux and macOS.
+- `firma-${VERSION}-${target}.zip` for Windows.
+- Matching `.sha256` checksum files.
+
+Bazel remains the pull-request verification path during the migration. Release
+artifacts stay Cargo-native until the Bazel graph and Windows MSVC toolchain path
+are ready to replace the platform-native release workflow.
 
 ## License
 

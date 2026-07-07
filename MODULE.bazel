@@ -7,7 +7,6 @@ bazel_dep(name = "rules_rs", version = "0.0.94")
 bazel_dep(name = "llvm", version = "0.8.9")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.19")
-bazel_dep(name = "rules_pkg", version = "1.1.0")
 bazel_dep(name = "rules_shell", version = "0.8.0")
 bazel_dep(name = "protobuf", version = "34.0.bcr.1", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_proto", version = "7.1.0")
@@ -95,12 +94,10 @@ crate.from_cargo(
     platform_triples = [
         "aarch64-apple-darwin",
         "aarch64-pc-windows-gnullvm",
-        "aarch64-pc-windows-msvc",
         "aarch64-unknown-linux-gnu",
         "aarch64-unknown-linux-musl",
         "x86_64-apple-darwin",
         "x86_64-pc-windows-gnullvm",
-        "x86_64-pc-windows-msvc",
         "x86_64-unknown-linux-gnu",
         "x86_64-unknown-linux-musl",
     ],
