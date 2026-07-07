@@ -138,6 +138,42 @@ diff --git a/util/process_wrapper/options.rs b/util/process_wrapper/options.rs
      Ok(has_allow_features_flag)
  }
 
+diff --git a/util/process_wrapper/main.rs b/util/process_wrapper/main.rs
+--- a/util/process_wrapper/main.rs
++++ b/util/process_wrapper/main.rs
+@@ -210,6 +210,9 @@ fn consolidate_dependency_search_paths(
+             }
+ 
+             let file_name = entry.file_name();
++            if !is_stageable_dependency_artifact(&file_name) {
++                continue;
++            }
+             let file_name_lower = file_name
+                 .to_string_lossy()
+                 .to_ascii_lowercase();
+@@ -247,6 +250,21 @@ fn consolidate_dependency_search_paths(
+     Ok((filtered_args, Some(unified_dir)))
+ }
+ 
++#[cfg(windows)]
++fn is_stageable_dependency_artifact(name: &std::ffi::OsStr) -> bool {
++    let Some(name) = name.to_str() else {
++        return false;
++    };
++    let Some((_, extension)) = name.rsplit_once('.') else {
++        return false;
++    };
++
++    matches!(
++        extension.to_ascii_lowercase().as_str(),
++        "a" | "dll" | "lib" | "rlib" | "rmeta"
++    )
++}
++
+ #[cfg(not(windows))]
+ fn consolidate_dependency_search_paths(
+     args: &[String],
+
 diff --git a/rust/private/rustc.bzl b/rust/private/rustc.bzl
 --- a/rust/private/rustc.bzl
 +++ b/rust/private/rustc.bzl
