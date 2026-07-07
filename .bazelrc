@@ -1,5 +1,6 @@
 common --enable_bzlmod
 common --enable_platform_specific_config
+common --lockfile_mode=error
 common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 common --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
 common:windows --host_platform=//platforms:local_windows_gnullvm
@@ -16,18 +17,26 @@ build --experimental_convenience_symlinks=ignore
 # on the developer or CI runner shell environment.
 build --incompatible_strict_action_env
 
+# Run Bazel actions under sandboxing by default where Bazel provides a stable
+# local sandbox strategy. Windows GitHub-hosted runners do not ship a usable
+# BazelSandbox.exe with Bazelisk-installed Bazel.
+build:linux --spawn_strategy=sandboxed
+build:macos --spawn_strategy=sandboxed
+build:windows --spawn_strategy=standalone
+build --sandbox_default_allow_network=false
+build --features=layering_check
+test:linux --spawn_strategy=sandboxed
+test:macos --spawn_strategy=sandboxed
+test:windows --spawn_strategy=standalone
+
 # Keep Rust build scripts that use cc-rs aligned with hermetic-llvm's C/C++
 # toolchain assumptions.
 common --@rules_cc//cc/toolchains/args/archiver_flags:use_libtool_on_macos=False
 common --@llvm//config:experimental_stub_libgcc_s
 
-# Linux CI hermeticity check: force sandboxed local execution before enabling
-# remote execution. Keep this opt-in so Windows/macOS jobs use their platform
-# defaults while we validate Linux RBE readiness.
+# Compatibility alias for existing CI/local commands that still pass
+# `--config=hermeticity`; the hermeticity settings above are now defaults.
 common:hermeticity --enable_bzlmod
-build:hermeticity --spawn_strategy=sandboxed
-build:hermeticity --features=layering_check
-test:hermeticity --spawn_strategy=sandboxed
 
 # Opt-in remote caching via `bazel --config=buildbuddy ...` or
 # `BAZEL_FLAGS=--config=buildbuddy just bazel-check`.

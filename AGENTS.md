@@ -37,10 +37,14 @@ become real Cargo-native dependencies. After changing Cargo/Bazel dependency
 wiring, run `bazel mod tidy`; `just bazel-lockfile-check` verifies the
 checked-in Bazel lock state is current.
 
-Bazel uses `--incompatible_strict_action_env` by default. The opt-in
-`--config=hermeticity` Bazel config also forces sandboxed local execution; CI
-runs it on Linux to catch undeclared host assumptions before remote execution is
-enabled.
+Bazel uses read-only lockfile mode, a strict action environment, sandboxed
+execution on Linux and macOS, and C/C++ header layering checks by default.
+Windows Bazel jobs use standalone local execution because Bazelisk-installed
+Bazel on GitHub-hosted Windows runners does not provide a usable Windows sandbox
+binary. Build actions run without sandbox network access where sandboxing is
+enabled; tests keep network access for E2E coverage. The opt-in
+`--config=hermeticity` config remains as a compatibility alias for older local
+and CI commands.
 
 ## Formatting
 
