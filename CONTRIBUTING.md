@@ -3,9 +3,10 @@
 Thank you for your interest in contributing to OpenFirma! We'd love to have you contribute. Here are some resources and guidance to help you get started.
 
 - [Getting Started](#getting-started)
-- [Bazel Dependency Lockfiles](#bazel-dependency-lockfiles)
 - [Issues](#issues)
 - [Pull Requests](#pull-requests)
+- [Bazel Dependency Lockfiles](#bazel-dependency-lockfiles)
+- [Bazel Release Artifacts](#bazel-release-artifacts)
 
 ## Getting Started
 
@@ -92,6 +93,28 @@ The native `--config=windows` configuration keeps the host platform on the
 Windows gnullvm toolchain for Windows runners. The `windows-cross` configuration
 keeps the execution platform on the local host so build tools run on macOS or
 Linux while targets are built for Windows gnullvm.
+
+## Bazel Release Artifacts
+
+Release archives are built with Bazel through the `//release` package. The Unix
+targets produce `firma.tar.gz` with a `firma` binary at the archive root, and the
+Windows targets produce `firma.zip` with `firma.exe` at the archive root. The
+release workflow renames those stable Bazel outputs to the versioned GitHub
+release asset names.
+
+```bash
+bazel build --config=release-linux-x86_64-musl //release:firma_unix_archive
+bazel build --config=release-linux-aarch64-musl //release:firma_unix_archive
+bazel build --config=release-darwin-x86_64 //release:firma_unix_archive
+bazel build --config=release-darwin-aarch64 //release:firma_unix_archive
+bazel build --config=release-windows-x86_64-msvc //release:firma_windows_archive
+bazel build --config=release-windows-aarch64-msvc //release:firma_windows_archive
+```
+
+The Windows MSVC release configurations are intended to run on Windows hosts and
+may use the runner's installed MSVC toolchain and Windows SDK. The gnullvm
+`windows` and `windows-cross` configurations remain separate from release MSVC
+artifacts.
 
 ## License
 

@@ -10,6 +10,24 @@ common:windows-cross --host_platform=@platforms//host:host
 build:windows --@rules_rust//rust/settings:extra_rustc_flags=-Clink-self-contained=yes
 build:windows-cross --@rules_rust//rust/settings:extra_rustc_flags=-Clink-self-contained=yes
 
+build:release --compilation_mode=opt
+build:release-darwin-aarch64 --config=release
+build:release-darwin-aarch64 --platforms=//platforms:darwin_aarch64
+build:release-darwin-x86_64 --config=release
+build:release-darwin-x86_64 --platforms=//platforms:darwin_x86_64
+build:release-linux-aarch64-musl --config=release
+build:release-linux-aarch64-musl --platforms=//platforms:linux_aarch64_musl
+build:release-linux-x86_64-musl --config=release
+build:release-linux-x86_64-musl --platforms=//platforms:linux_x86_64_musl
+build:release-windows-aarch64-msvc --config=release
+build:release-windows-aarch64-msvc --host_platform=//platforms:local_windows_msvc
+build:release-windows-aarch64-msvc --platforms=//platforms:windows_aarch64_msvc
+build:release-windows-aarch64-msvc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0
+build:release-windows-x86_64-msvc --config=release
+build:release-windows-x86_64-msvc --host_platform=//platforms:local_windows_msvc
+build:release-windows-x86_64-msvc --platforms=//platforms:windows_x86_64_msvc
+build:release-windows-x86_64-msvc --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0
+
 # Optional local/CI credentials and metadata for the BuildBuddy remote cache.
 # This file must not be checked in; CI generates it from BUILD_BUDDY_API_KEY.
 try-import %workspace%/.bazelrc.buildbuddy.auth
