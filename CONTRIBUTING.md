@@ -82,6 +82,17 @@ binary. Build actions run without sandbox network access where sandboxing is
 enabled; tests keep network access for E2E coverage. CI applies the same
 settings to regular Bazel build, test, and lint jobs.
 
+To cross-build the Windows gnullvm graph from a non-Windows host, use:
+
+```bash
+bazel build --config=windows-cross //...
+```
+
+The native `--config=windows` configuration keeps the host platform on the
+Windows gnullvm toolchain for Windows runners. The `windows-cross` configuration
+keeps the execution platform on the local host so build tools run on macOS or
+Linux while targets are built for Windows gnullvm.
+
 ## License
 
 By contributing to OpenFirma, you agree that your contributions will be licensed under the [Apache License 2.0](LICENSE).
