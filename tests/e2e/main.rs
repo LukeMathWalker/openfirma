@@ -25,7 +25,12 @@ use scenarios::EnforcementScenario;
 /// just-built debug binary.
 #[must_use]
 pub fn firma_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    let path = PathBuf::from(env!("CARGO_BIN_EXE_firma"));
+    if path.is_absolute() {
+        path
+    } else {
+        std::env::current_dir().map_or_else(|_| path.clone(), |cwd| cwd.join(&path))
+    }
 }
 
 // ── Test driver ──────────────────────────────────────────────────────────────

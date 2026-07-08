@@ -1,0 +1,53 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_rs//rs:rust_library.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test")
+load("@rules_rust_prost//:defs.bzl", "rust_prost_library")
+
+package(default_visibility = ["//visibility:public"])
+
+PROTO_SRCS = glob(["proto/**/*.proto"])
+
+BAZEL_CFG = ["--cfg=bazel"]
+
+proto_library(
+    name = "firma_v1_proto",
+    srcs = PROTO_SRCS,
+    strip_import_prefix = "proto",
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+rust_prost_library(
+    name = "firma_v1_proto_rust",
+    proto = ":firma_v1_proto",
+)
+
+rust_library(
+    name = "firma_protobuf",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    crate_name = "firma_protobuf",
+    crate_root = "src/lib.rs",
+    deps = all_crate_deps(normal = True) + [":firma_v1_proto_rust"],
+    edition = "2024",
+    rustc_flags = BAZEL_CFG,
+)
+
+alias(
+    name = "firma-protobuf",
+    actual = ":firma_protobuf",
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":firma_protobuf",
+    rustdoc_flags = BAZEL_CFG,
+)
+
+rust_doc(
+    name = "docs",
+    crate = ":firma_protobuf",
+    rustdoc_flags = BAZEL_CFG,
+)
+
+exports_files(["Cargo.toml"] + PROTO_SRCS)

@@ -14,10 +14,12 @@ use std::time::{Duration, Instant};
 
 use firma_config_loader::CONFIG_FILE_NAME;
 
+mod support;
+
 const READY_TIMEOUT: Duration = Duration::from_secs(15);
 
 fn firma_bin() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    support::firma_bin()
 }
 
 fn wait_for_line<R: std::io::BufRead>(reader: &mut R, needle: &str) -> bool {

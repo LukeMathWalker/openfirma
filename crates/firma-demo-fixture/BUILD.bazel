@@ -1,0 +1,58 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_binary.bzl", "rust_binary")
+load("@rules_rs//rs:rust_library.bzl", "rust_library")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "firma_demo_fixture",
+    srcs = ["src/lib.rs"],
+    aliases = aliases(),
+    crate_name = "firma_demo_fixture",
+    crate_root = "src/lib.rs",
+    deps = all_crate_deps(normal = True),
+    edition = "2024",
+)
+
+rust_binary(
+    name = "firma-demo-fixture",
+    srcs = ["src/bin/server.rs"],
+    aliases = aliases(),
+    crate_name = "firma_demo_fixture_server",
+    deps = all_crate_deps(normal = True) + [":firma_demo_fixture"],
+    edition = "2024",
+)
+
+rust_binary(
+    name = "firma-demo-fixture-client",
+    srcs = ["src/bin/client.rs"],
+    aliases = aliases(),
+    crate_name = "firma_demo_fixture_client",
+    deps = all_crate_deps(normal = True) + [":firma_demo_fixture"],
+    edition = "2024",
+)
+
+rust_test(
+    name = "client_unit_tests",
+    srcs = ["src/bin/client.rs"],
+    aliases = aliases(),
+    crate_name = "firma_demo_fixture_client_test",
+    deps = all_crate_deps(normal = True, normal_dev = True) + [
+        ":firma_demo_fixture",
+    ],
+    edition = "2024",
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":firma_demo_fixture",
+)
+
+rust_doc(
+    name = "docs",
+    crate = ":firma_demo_fixture",
+)
+
+exports_files(["Cargo.toml"])

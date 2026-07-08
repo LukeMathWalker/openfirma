@@ -1,0 +1,55 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_binary.bzl", "rust_binary")
+load("@rules_rs//rs:rust_library.bzl", "rust_library")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "firma_core",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    compile_data = ["firma.cedarschema"],
+    crate_name = "firma_core",
+    crate_root = "src/lib.rs",
+    edition = "2024",
+    deps = all_crate_deps(normal = True),
+)
+
+alias(
+    name = "firma-core",
+    actual = ":firma_core",
+)
+
+rust_test(
+    name = "unit_tests",
+    aliases = aliases(),
+    crate = ":firma_core",
+    edition = "2024",
+    deps = all_crate_deps(normal_dev = True),
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":firma_core",
+)
+
+rust_doc(
+    name = "docs",
+    crate = ":firma_core",
+)
+
+rust_binary(
+    name = "paseto_bench",
+    srcs = ["benches/paseto.rs"],
+    aliases = aliases(),
+    crate_name = "paseto_bench",
+    crate_root = "benches/paseto.rs",
+    deps = all_crate_deps(normal = True, normal_dev = True) + [
+        ":firma_core",
+    ],
+    edition = "2024",
+)
+
+exports_files(["Cargo.toml"])

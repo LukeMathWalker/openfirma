@@ -15,7 +15,11 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
-const FIRMA_BIN: &str = env!("CARGO_BIN_EXE_firma");
+mod support;
+
+fn firma_bin() -> PathBuf {
+    support::firma_bin()
+}
 
 struct IssuedSeed {
     tmp: tempfile::TempDir,
@@ -41,7 +45,7 @@ fn issue_seed() -> IssuedSeed {
 
     let key_path = tmp.path().join("firma-authority.key");
     let pub_key_path = key_path.with_extension("pub");
-    let status = Command::new(FIRMA_BIN)
+    let status = Command::new(firma_bin())
         .args(["authority", "generate-key", "--output"])
         .arg(&key_path)
         .current_dir(&tmp)
@@ -72,7 +76,7 @@ bundle_ttl_seconds = 30
     .unwrap();
 
     let seed_path = tmp.path().join("capability.toml");
-    let status = Command::new(FIRMA_BIN)
+    let status = Command::new(firma_bin())
         .args(["authority", "--config"])
         .arg(&auth_toml)
         .args([
@@ -198,7 +202,7 @@ fn tamper_seed_action_set(seed_path: &Path, action: &str) {
 }
 
 fn run_sidecar_until_exit(config_path: &Path) -> (i32, String, String) {
-    let mut child = Command::new(FIRMA_BIN)
+    let mut child = Command::new(firma_bin())
         .args(["sidecar", "--config"])
         .arg(config_path)
         .args(["--health-bind-addr", "127.0.0.1:0"])

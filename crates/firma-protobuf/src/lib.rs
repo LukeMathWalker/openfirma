@@ -34,10 +34,17 @@
 #![allow(clippy::wildcard_imports)]
 
 /// Generated types and Tonic service glue for the `firma.v1` package.
+#[cfg(not(bazel))]
 pub mod v1 {
     #![allow(
         clippy::allow_attributes,
         reason = "prost/tonic emits outer #[allow(...)] attributes in generated Rust"
     )]
     tonic::include_proto!("firma.v1");
+}
+
+/// Generated types and Tonic service glue for the `firma.v1` package.
+#[cfg(bazel)]
+pub mod v1 {
+    pub use firma_v1_proto::firma::v1::*;
 }

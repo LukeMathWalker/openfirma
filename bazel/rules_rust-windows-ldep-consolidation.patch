@@ -1,0 +1,189 @@
+diff --git a/util/process_wrapper/options.rs b/util/process_wrapper/options.rs
+--- a/util/process_wrapper/options.rs
++++ b/util/process_wrapper/options.rs
+@@ -344,6 +344,85 @@
+     arg
+ }
+ 
++/// On Windows, rustc adds dependency search paths to PATH when loading crates.
++/// Large Bazel Rust actions can exceed the Windows environment-variable limit,
++/// causing rustc to report that direct crates cannot be found. Consolidate many
++/// dependency search directories into one staging directory before invoking rustc.
++#[cfg(windows)]
++fn consolidate_ldeps(
++    ldep_paths: &[String],
++    param_file: &str,
++) -> Result<Option<String>, OptionError> {
++    // Keep small actions unchanged; the failing cases have hundreds of entries.
++    if ldep_paths.len() < 300 {
++        return Ok(None);
++    }
++
++    let consolidated_dir = format!("{param_file}.ldeps");
++    let _ = std::fs::remove_dir_all(&consolidated_dir);
++    std::fs::create_dir_all(&consolidated_dir).map_err(|e| {
++        OptionError::Generic(format!("failed to create {consolidated_dir}: {e}"))
++    })?;
++
++    for dir in ldep_paths {
++        let entries = match std::fs::read_dir(dir) {
++            Ok(entries) => entries,
++            Err(_) => continue,
++        };
++
++        for entry in entries.flatten() {
++            let path = entry.path();
++            if !path.is_file() {
++                continue;
++            }
++
++            let Some(name) = path.file_name() else {
++                continue;
++            };
++            if !is_stageable_ldep_artifact(name) {
++                continue;
++            }
++            let target = std::path::Path::new(&consolidated_dir).join(name);
++            if target.exists() {
++                continue;
++            }
++
++            if std::fs::hard_link(&path, &target).is_err() {
++                std::fs::copy(&path, &target).map_err(|e| {
++                    OptionError::Generic(format!(
++                        "failed to stage {path:?} into ldeps directory: {e}"
++                    ))
++                })?;
++            }
++        }
++    }
++
++    Ok(Some(consolidated_dir))
++}
++
++#[cfg(windows)]
++fn is_stageable_ldep_artifact(name: &std::ffi::OsStr) -> bool {
++    let Some(name) = name.to_str() else {
++        return false;
++    };
++    let Some((_, extension)) = name.rsplit_once('.') else {
++        return false;
++    };
++
++    matches!(
++        extension.to_ascii_lowercase().as_str(),
++        "a" | "dll" | "lib" | "rlib" | "rmeta"
++    )
++}
++
++#[cfg(not(windows))]
++fn consolidate_ldeps(
++    _ldep_paths: &[String],
++    _param_file: &str,
++) -> Result<Option<String>, OptionError> {
++    Ok(None)
++}
++
+ /// Apply substitutions to the given param file. Returns true iff any allow-features flags were found.
+ fn prepare_param_file(
+     filename: &str,
+@@ -356,21 +435,47 @@
+         subst_mappings: &[(String, String)],
+         read_file: &mut impl FnMut(&str) -> Result<Vec<String>, OptionError>,
+         write_to_file: &mut impl FnMut(&str) -> Result<(), OptionError>,
++        collected_ldeps: &mut Vec<String>,
+     ) -> Result<bool, OptionError> {
+         let mut has_allow_features_flag = false;
+         for arg in read_file(filename)? {
+             let arg = prepare_arg(arg, subst_mappings);
+             has_allow_features_flag |= is_allow_features_flag(&arg);
+             if let Some(arg_file) = arg.strip_prefix('@') {
+-                has_allow_features_flag |=
+-                    process_file(arg_file, subst_mappings, read_file, write_to_file)?;
++                has_allow_features_flag |= process_file(
++                    arg_file,
++                    subst_mappings,
++                    read_file,
++                    write_to_file,
++                    collected_ldeps,
++                )?;
++            } else if let Some(ldep) = arg.strip_prefix("-Ldependency=") {
++                collected_ldeps.push(ldep.to_owned());
+             } else {
+                 write_to_file(&arg)?;
+             }
+         }
+         Ok(has_allow_features_flag)
+     }
+-    let has_allow_features_flag = process_file(filename, subst_mappings, read_file, write_to_file)?;
++
++    let mut collected_ldeps = Vec::new();
++    let has_allow_features_flag = process_file(
++        filename,
++        subst_mappings,
++        read_file,
++        write_to_file,
++        &mut collected_ldeps,
++    )?;
++
++    match consolidate_ldeps(&collected_ldeps, filename)? {
++        Some(consolidated_dir) => write_to_file(&format!("-Ldependency={consolidated_dir}"))?,
++        None => {
++            for dir in collected_ldeps {
++                write_to_file(&format!("-Ldependency={dir}"))?;
++            }
++        }
++    }
++
+     Ok(has_allow_features_flag)
+ }
+
+diff --git a/util/process_wrapper/main.rs b/util/process_wrapper/main.rs
+--- a/util/process_wrapper/main.rs
++++ b/util/process_wrapper/main.rs
+@@ -210,6 +210,9 @@ fn consolidate_dependency_search_paths(
+             }
+ 
+             let file_name = entry.file_name();
++            if !is_stageable_dependency_artifact(&file_name) {
++                continue;
++            }
+             let file_name_lower = file_name
+                 .to_string_lossy()
+                 .to_ascii_lowercase();
+@@ -247,6 +250,21 @@ fn consolidate_dependency_search_paths(
+     Ok((filtered_args, Some(unified_dir)))
+ }
+ 
++#[cfg(windows)]
++fn is_stageable_dependency_artifact(name: &std::ffi::OsStr) -> bool {
++    let Some(name) = name.to_str() else {
++        return false;
++    };
++    let Some((_, extension)) = name.rsplit_once('.') else {
++        return false;
++    };
++
++    matches!(
++        extension.to_ascii_lowercase().as_str(),
++        "a" | "dll" | "lib" | "rlib" | "rmeta"
++    )
++}
++
+ #[cfg(not(windows))]
+ fn consolidate_dependency_search_paths(
+     args: &[String],
+
+diff --git a/rust/private/rustc.bzl b/rust/private/rustc.bzl
+--- a/rust/private/rustc.bzl
++++ b/rust/private/rustc.bzl
+@@ -441,6 +441,9 @@ def get_linker_and_args(ctx, crate_type, toolchain, cc_toolchain, feature_config
+                     filtered_args.append(version)
+                     # Keep library search path flags
+ 
++                elif ld_is_direct_driver and toolchain.target_os == "windows" and processed_arg.startswith("-l"):
++                    filtered_args.append(processed_arg)
++
+                 elif processed_arg.startswith("-L"):
+                     filtered_args.append(processed_arg)
+                     # Keep sysroot flags (as single or two-part arguments)

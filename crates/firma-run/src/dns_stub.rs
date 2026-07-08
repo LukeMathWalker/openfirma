@@ -13,7 +13,7 @@ use crate::error::RunError;
 /// structural network path.
 ///
 /// The stub binds an ephemeral loopback UDP+TCP port and returns `REFUSED`
-/// (RCODE 5) for every DNS query. It is the DNS analog of [`super::proxy_bridge::HostBridgeHandle`]:
+/// (RCODE 5) for every DNS query. It is the DNS analog of `HostBridgeHandle`:
 /// a host-side service that the sandbox-exec profile allows through (loopback),
 /// while all other DNS destinations (external resolvers) are blocked by the
 /// `deny network-outbound` policy.

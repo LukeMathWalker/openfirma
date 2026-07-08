@@ -1,0 +1,268 @@
+load("//bazel:rust_tests.bzl", "cargo_integration_test")
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_binary.bzl", "rust_binary")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_binary(
+    name = "firma",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    compile_data = glob(["templates/**"]),
+    crate_name = "firma",
+    crate_root = "src/main.rs",
+    deps = all_crate_deps(normal = True) + [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-run:firma_run",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//crates/firma-stack:firma_stack",
+    ],
+    edition = "2024",
+    version = "0.1.2",
+)
+
+rust_test(
+    name = "unit_tests",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    compile_data = glob(["templates/**"]),
+    crate_name = "firma_test",
+    crate_root = "src/main.rs",
+    deps = all_crate_deps(normal = True, normal_dev = True) + [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-run:firma_run",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+        "//crates/firma-stack:firma_stack",
+    ],
+    edition = "2024",
+    version = "0.1.2",
+)
+
+rust_test(
+    name = "cli_help_test",
+    srcs = [
+        "tests/cli_help.rs",
+        "tests/support/mod.rs",
+    ],
+    crate_root = "tests/cli_help.rs",
+    aliases = aliases(),
+    data = [":firma"],
+    deps = all_crate_deps(normal = True, normal_dev = True),
+    edition = "2024",
+    rustc_env = {
+        "CARGO_BIN_EXE_firma": "$(rootpath :firma)",
+    },
+)
+
+rust_test(
+    name = "cli_parsing_test",
+    srcs = [
+        "tests/cli_parsing.rs",
+        "tests/support/mod.rs",
+    ],
+    crate_root = "tests/cli_parsing.rs",
+    aliases = aliases(),
+    data = [":firma"],
+    deps = all_crate_deps(normal = True, normal_dev = True) + [
+        "//crates/firma-config-loader:firma_config_loader",
+    ],
+    edition = "2024",
+    rustc_env = {
+        "CARGO_BIN_EXE_firma": "$(rootpath :firma)",
+    },
+)
+
+rust_test(
+    name = "sidecar_status_cli_test",
+    srcs = [
+        "tests/sidecar_status_cli.rs",
+        "tests/support/mod.rs",
+    ],
+    crate_root = "tests/sidecar_status_cli.rs",
+    aliases = aliases(),
+    data = [":firma"],
+    deps = all_crate_deps(normal = True, normal_dev = True),
+    edition = "2024",
+    rustc_env = {
+        "CARGO_BIN_EXE_firma": "$(rootpath :firma)",
+    },
+)
+
+_FIRMA_BIN_ENV = {
+    "CARGO_BIN_EXE_firma": "$(rootpath :firma)",
+}
+
+cargo_integration_test(
+    name = "authority_keygen_integration_test",
+    src = "tests/authority_keygen.rs",
+    data = [":firma"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "doctor_integration_test",
+    src = "tests/doctor.rs",
+    data = [":firma"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "firma_config_integration_test",
+    src = "tests/firma_config.rs",
+    data = [":firma"],
+    deps = [
+        "//crates/firma-authority:firma_authority",
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-sidecar:firma_sidecar",
+    ],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "child_process_escape_integration_test",
+    src = "tests/child_process_escape.rs",
+    data = [":firma"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "e2e_startup_integration_test",
+    src = "tests/e2e_startup.rs",
+    data = [":firma"],
+    deps = ["//crates/firma-config-loader:firma_config_loader"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "live_capability_e2e_integration_test",
+    src = "tests/live_capability_e2e.rs",
+    data = [":firma"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-run:firma_run",
+        "//crates/firma-runtime-state:firma_runtime_state",
+        "//crates/firma-sidecar:firma_sidecar",
+    ],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "monitor_audit_stream_integration_test",
+    src = "tests/monitor_audit_stream.rs",
+    data = [":firma"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "monitor_decoupled_integration_test",
+    src = "tests/monitor_decoupled.rs",
+    data = [":firma"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "policy_cli_integration_test",
+    src = "tests/policy_cli.rs",
+    data = [":firma"] + glob(["tests/testdata/policy/**"]),
+    rustc_env = {
+        "CARGO_BIN_EXE_firma": "$(rootpath :firma)",
+        "CARGO_MANIFEST_DIR": "crates/firma",
+    },
+)
+
+cargo_integration_test(
+    name = "run_authority_flags_integration_test",
+    src = "tests/run_authority_flags.rs",
+    data = [":firma"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "run_autostart_flags_integration_test",
+    src = "tests/run_autostart_flags.rs",
+    data = [":firma"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "run_echo_smoke_integration_test",
+    src = "tests/run_echo_smoke.rs",
+    data = [":firma"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "run_implicit_init_prompt_integration_test",
+    src = "tests/run_implicit_init_prompt.rs",
+    data = [":firma"],
+    deps = ["//crates/firma-config-loader:firma_config_loader"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "seeded_capability_e2e_integration_test",
+    src = "tests/seeded_capability_e2e.rs",
+    data = [":firma"],
+    deps = [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-sidecar:firma_sidecar",
+    ],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "sidecar_readiness_gate_integration_test",
+    src = "tests/sidecar_readiness_gate.rs",
+    data = [":firma"],
+    deps = ["//crates/firma-config-loader:firma_config_loader"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "sidecar_startup_contract_integration_test",
+    src = "tests/sidecar_startup_contract.rs",
+    data = [":firma"],
+    deps = ["//crates/firma-config-loader:firma_config_loader"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "sidecar_tampered_seed_e2e_integration_test",
+    src = "tests/sidecar_tampered_seed_e2e.rs",
+    data = [":firma"],
+    deps = ["//crates/firma-core:firma_core"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "sidecar_invalid_config_integration_test",
+    src = "tests/sidecar_invalid_config.rs",
+    data = [":firma"],
+    deps = ["//crates/firma-config-loader:firma_config_loader"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "stack_lifecycle_integration_test",
+    src = "tests/stack_lifecycle.rs",
+    data = [":firma"],
+    deps = ["//crates/firma-config-loader:firma_config_loader"],
+    rustc_env = _FIRMA_BIN_ENV,
+)
+
+cargo_integration_test(
+    name = "stack_teardown_grandchildren_integration_test",
+    src = "tests/stack_teardown_grandchildren.rs",
+    deps = ["//crates/firma-stack:firma_stack"],
+)
+
+exports_files(["Cargo.toml"])

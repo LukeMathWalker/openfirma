@@ -44,10 +44,12 @@ use firma_config_loader::CONFIG_FILE_NAME;
 use firma_sidecar::config::CapabilitySeedConfig;
 use firma_sidecar::startup::{build_token_verifier, load_capability_map};
 
+mod support;
+
 const READY_TIMEOUT: Duration = Duration::from_secs(15);
 
 fn firma_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    support::firma_bin()
 }
 
 /// Bind, capture, and immediately release a loopback port so callers can hand

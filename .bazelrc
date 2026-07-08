@@ -1,0 +1,62 @@
+common --enable_bzlmod
+common --enable_platform_specific_config
+common --lockfile_mode=error
+common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+common --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+common:windows --host_platform=@openfirma_platforms//platforms:local_windows_gnullvm
+common:windows --platforms=@openfirma_platforms//platforms:local_windows_gnullvm
+common:windows-cross --platforms=@openfirma_platforms//platforms:local_windows_gnullvm
+common:windows-cross --host_platform=@platforms//host:host
+build:windows --@rules_rust//rust/settings:extra_rustc_flags=-Clink-self-contained=yes
+build:windows-cross --@rules_rust//rust/settings:extra_rustc_flags=-Clink-self-contained=yes
+
+# Optional local/CI credentials and metadata for the BuildBuddy remote cache.
+# This file must not be checked in; CI generates it from BUILD_BUDDY_API_KEY.
+try-import %workspace%/.bazelrc.buildbuddy.auth
+
+# Keep Bazel outputs out of source directories unless explicitly requested.
+build --experimental_convenience_symlinks=ignore
+
+# Keep action environments explicit so Bazel actions do not accidentally depend
+# on the developer or CI runner shell environment.
+build --incompatible_strict_action_env
+
+# Run Bazel actions under sandboxing by default where Bazel provides a stable
+# local sandbox strategy. Windows GitHub-hosted runners do not ship a usable
+# BazelSandbox.exe with Bazelisk-installed Bazel.
+build:linux --spawn_strategy=sandboxed
+build:macos --spawn_strategy=sandboxed
+build:windows --spawn_strategy=standalone
+build --sandbox_default_allow_network=false
+build --features=layering_check
+test:linux --spawn_strategy=sandboxed
+test:macos --spawn_strategy=sandboxed
+test:windows --spawn_strategy=standalone
+
+# Keep Rust build scripts that use cc-rs aligned with hermetic-llvm's C/C++
+# toolchain assumptions.
+common --@rules_cc//cc/toolchains/args/archiver_flags:use_libtool_on_macos=False
+common --@llvm//config:experimental_stub_libgcc_s
+
+# Compatibility alias for existing CI/local commands that still pass
+# `--config=hermeticity`; the hermeticity settings above are now defaults.
+common:hermeticity --enable_bzlmod
+
+# Opt-in remote caching via `bazel --config=buildbuddy ...` or
+# `BAZEL_FLAGS=--config=buildbuddy just bazel-check`.
+build:buildbuddy --bes_results_url=https://app.buildbuddy.io/invocation/
+build:buildbuddy --bes_backend=grpcs://remote.buildbuddy.io
+build:buildbuddy --noslim_profile
+build:buildbuddy --experimental_profile_include_target_label
+build:buildbuddy --experimental_profile_include_primary_output
+common:buildbuddy --remote_cache=grpcs://remote.buildbuddy.io
+common:buildbuddy --remote_cache_compression
+common:buildbuddy --remote_download_minimal
+common:buildbuddy --remote_timeout=10m
+
+# CI runners have fresh Bazel output bases, so the first remote-cache-backed
+# invocation is dominated by action-cache probes. Increase action scheduling
+# parallelism in CI without changing local `--config=buildbuddy` behavior.
+common:buildbuddy-ci --config=buildbuddy
+build:buildbuddy-ci --jobs=32
+test:buildbuddy-ci --jobs=32

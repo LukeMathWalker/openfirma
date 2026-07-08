@@ -1,0 +1,59 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_library.bzl", "rust_library")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "firma_config_loader",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    crate_features = [
+        "clap",
+        "test-utils",
+    ],
+    crate_name = "firma_config_loader",
+    crate_root = "src/lib.rs",
+    deps = all_crate_deps(normal = True),
+    edition = "2024",
+)
+
+alias(
+    name = "firma-config-loader",
+    actual = ":firma_config_loader",
+)
+
+rust_test(
+    name = "unit_tests",
+    aliases = aliases(),
+    crate = ":firma_config_loader",
+    edition = "2024",
+    deps = all_crate_deps(normal_dev = True),
+)
+
+rust_test(
+    name = "integration_tests",
+    srcs = glob(["tests/integration/**/*.rs"]),
+    aliases = aliases(),
+    args = ["--test-threads=1"],
+    crate_name = "firma_config_loader_integration_tests",
+    crate_root = "tests/integration/main.rs",
+    deps = all_crate_deps(normal = True, normal_dev = True) + [":firma_config_loader"],
+    edition = "2024",
+    env = {
+        "NEXTEST": "1",
+    },
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":firma_config_loader",
+)
+
+rust_doc(
+    name = "docs",
+    crate = ":firma_config_loader",
+)
+
+exports_files(["Cargo.toml"])

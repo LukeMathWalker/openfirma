@@ -5,19 +5,52 @@ Guidance for coding agents working in this repository.
 ## Key Commands
 
 ```bash
-just check # Run all local verification checks (CI parity)
+just check # Run all local Cargo-native verification checks
 just fmt # dprint check (TOML + Markdown + Rust)
 just lint # cargo clippy --workspace -- -D warnings
 just test # cargo nextest run + cargo test --doc
 just build # cargo build --workspace
+just bazel-check # Build and test the current Bazel Rust graph
 ```
 
 Tests run via `cargo nextest` (process-per-test isolation); doctests run
 separately via `cargo test --doc` since nextest does not run them.
 
-Requires `protoc` installed for protobuf compilation (`firma-protobuf` and
-`firma-grpc-interceptor-proto` both compile `.proto` files via
-`tonic-prost-build` against a system `protoc`).
+Bazel support is additive during the migration. Keep `Cargo.toml` and
+`Cargo.lock` compatible with Cargo-native tools, and use `just bazel-check` to
+verify Bazel targets that have been ported. Pull requests use the Bazel path for
+Rust verification; Cargo-native tests run periodically on `main` and remain
+available locally through `just check`.
+
+Cargo-native protobuf compilation still requires `protoc` installed:
+`firma-protobuf` and `firma-grpc-interceptor-proto` both compile `.proto` files
+via `tonic-prost-build` against a system `protoc`. Bazel builds those protobuf
+crates with hermetic `rules_rust_prost` targets instead of Cargo build scripts.
+
+Bazel dependency state uses Cargo's lockfile plus Bzlmod state:
+
+- `Cargo.lock` locks the Cargo workspace used by both Cargo and Bazel
+  `rules_rs` crate resolution.
+- `MODULE.bazel.lock` locks Bzlmod module resolution.
+
+Do not add `protoc-gen-prost` or `protoc-gen-tonic` to `Cargo.lock` unless they
+become real Cargo-native dependencies. After changing Cargo/Bazel dependency
+wiring, run `bazel mod tidy`; `just bazel-lockfile-check` verifies the
+checked-in Bazel lock state is current.
+
+OpenFirma consumes the pinned `openfirma-platforms` Bzlmod archive for shared
+platform labels and prebuilt prost/tonic codegen plugins. Keep platform-only
+Bazel labels there rather than adding them back under this repository's
+`//platforms` package.
+
+Bazel uses read-only lockfile mode, a strict action environment, sandboxed
+execution on Linux and macOS, and C/C++ header layering checks by default.
+Windows Bazel jobs use standalone local execution because Bazelisk-installed
+Bazel on GitHub-hosted Windows runners does not provide a usable Windows sandbox
+binary. Build actions run without sandbox network access where sandboxing is
+enabled; tests keep network access for E2E coverage. The opt-in
+`--config=hermeticity` config remains as a compatibility alias for older local
+and CI commands.
 
 ## Formatting
 

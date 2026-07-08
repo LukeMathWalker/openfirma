@@ -1,0 +1,26 @@
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+sh_binary(
+    name = "cargo_audit_check",
+    srcs = ["cargo_audit_check.sh"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+sh_binary(
+    name = "cargo_deny_check",
+    srcs = ["cargo_deny_check.sh"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+exports_files([
+    "cargo_audit_check.sh",
+    "cargo_deny_check.sh",
+    "rules_rust-windows-ldep-consolidation.patch",
+    "rust_tests.bzl",
+])

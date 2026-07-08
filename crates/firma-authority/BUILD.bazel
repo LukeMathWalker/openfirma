@@ -1,0 +1,79 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_library.bzl", "rust_library")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "firma_authority",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    crate_name = "firma_authority",
+    crate_root = "src/lib.rs",
+    deps = all_crate_deps(normal = True) + [
+        "//crates/firma-config-loader:firma_config_loader",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-protobuf:firma_protobuf",
+    ],
+    edition = "2024",
+)
+
+alias(
+    name = "firma-authority",
+    actual = ":firma_authority",
+)
+
+rust_test(
+    name = "unit_tests",
+    aliases = aliases(),
+    crate = ":firma_authority",
+    deps = all_crate_deps(normal_dev = True),
+    edition = "2024",
+)
+
+rust_test(
+    name = "profile_developer_integration_test",
+    srcs = ["tests/profile_developer.rs"],
+    aliases = aliases(),
+    crate_name = "profile_developer_integration_test",
+    deps = all_crate_deps(normal = True, normal_dev = True) + [":firma_authority"],
+    edition = "2024",
+)
+
+rust_test(
+    name = "e2e_integration_test",
+    srcs = ["tests/e2e.rs"],
+    aliases = aliases(),
+    crate_name = "authority_e2e_integration_test",
+    deps = all_crate_deps(normal = True, normal_dev = True) + [
+        ":firma_authority",
+        "//crates/firma-core:firma_core",
+        "//crates/firma-protobuf:firma_protobuf",
+    ],
+    edition = "2024",
+)
+
+rust_test(
+    name = "e2e_mtls_integration_test",
+    srcs = ["tests/e2e_mtls.rs"],
+    aliases = aliases(),
+    crate_name = "authority_e2e_mtls_integration_test",
+    deps = all_crate_deps(normal = True, normal_dev = True) + [
+        ":firma_authority",
+        "//crates/firma-protobuf:firma_protobuf",
+    ],
+    edition = "2024",
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":firma_authority",
+)
+
+rust_doc(
+    name = "docs",
+    crate = ":firma_authority",
+)
+
+exports_files(["Cargo.toml"])

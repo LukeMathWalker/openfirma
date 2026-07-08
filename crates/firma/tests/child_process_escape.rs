@@ -48,8 +48,10 @@ use std::time::Duration;
 
 use wait_timeout::ChildExt;
 
+mod support;
+
 fn firma_bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    support::firma_bin()
 }
 
 /// Captured outcome of one governed `firma run`.

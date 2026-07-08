@@ -1,0 +1,120 @@
+load("@crates//:defs.bzl", "aliases", "all_crate_deps")
+load("@rules_rs//rs:rust_binary.bzl", "rust_binary")
+load("@rules_rs//rs:rust_library.bzl", "rust_library")
+load("@rules_rs//rs:rust_test.bzl", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "firma_sidecar",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    crate_name = "firma_sidecar",
+    crate_root = "src/lib.rs",
+    deps = all_crate_deps(normal = True) + [
+        "//crates/firma-core:firma_core",
+        "//crates/firma-grpc-interceptor-proto:firma_grpc_interceptor_proto",
+        "//crates/firma-protobuf:firma_protobuf",
+        "//crates/firma-runtime-state:firma_runtime_state",
+    ],
+    edition = "2024",
+)
+
+alias(
+    name = "firma-sidecar",
+    actual = ":firma_sidecar",
+)
+
+rust_test(
+    name = "unit_tests",
+    aliases = aliases(),
+    crate = ":firma_sidecar",
+    data = glob(["config/mappings/*.toml"]),
+    deps = all_crate_deps(normal_dev = True),
+    edition = "2024",
+    rustc_env = {
+        "CARGO_MANIFEST_DIR": "crates/firma-sidecar",
+    },
+)
+
+rust_doc_test(
+    name = "doc_tests",
+    crate = ":firma_sidecar",
+)
+
+rust_doc(
+    name = "docs",
+    crate = ":firma_sidecar",
+)
+
+_BENCH_DEPS = all_crate_deps(normal = True, normal_dev = True) + [
+    ":firma_sidecar",
+    "//crates/firma-core:firma_core",
+]
+
+_BENCH_FIXTURES = glob(["benches/fixtures/*"])
+
+rust_binary(
+    name = "revocation_bench",
+    srcs = ["benches/revocation.rs"],
+    aliases = aliases(),
+    crate_name = "revocation_bench",
+    crate_root = "benches/revocation.rs",
+    deps = _BENCH_DEPS,
+    edition = "2024",
+)
+
+rust_binary(
+    name = "cedar_eval_bench",
+    srcs = [
+        "benches/cedar_eval.rs",
+        "benches/support/common_fixtures.rs",
+    ],
+    aliases = aliases(),
+    compile_data = _BENCH_FIXTURES,
+    crate_name = "cedar_eval_bench",
+    crate_root = "benches/cedar_eval.rs",
+    deps = _BENCH_DEPS,
+    edition = "2024",
+)
+
+rust_binary(
+    name = "bundle_reload_bench",
+    srcs = [
+        "benches/bundle_reload.rs",
+        "benches/support/common_fixtures.rs",
+    ],
+    aliases = aliases(),
+    compile_data = _BENCH_FIXTURES,
+    crate_name = "bundle_reload_bench",
+    crate_root = "benches/bundle_reload.rs",
+    deps = _BENCH_DEPS,
+    edition = "2024",
+)
+
+rust_binary(
+    name = "stage1_bench",
+    srcs = ["benches/stage1.rs"],
+    aliases = aliases(),
+    crate_name = "stage1_bench",
+    crate_root = "benches/stage1.rs",
+    deps = _BENCH_DEPS,
+    edition = "2024",
+)
+
+rust_binary(
+    name = "pipeline_bench",
+    srcs = [
+        "benches/pipeline.rs",
+        "benches/support/common_fixtures.rs",
+    ],
+    aliases = aliases(),
+    compile_data = _BENCH_FIXTURES,
+    crate_name = "pipeline_bench",
+    crate_root = "benches/pipeline.rs",
+    deps = _BENCH_DEPS,
+    edition = "2024",
+)
+
+exports_files(["Cargo.toml"])

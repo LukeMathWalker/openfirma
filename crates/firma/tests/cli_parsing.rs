@@ -15,6 +15,8 @@
 use clap::Parser as _;
 use firma_config_loader::CONFIG_FILE_NAME;
 
+mod support;
+
 // Re-import the binary's CLI module by depending on the binary as a
 // library would not work, so we duplicate the parse via a small
 // matchable invocation — checking only success/failure and the picked
@@ -27,7 +29,7 @@ fn parse_ok(argv: &[&str]) {
     // would change semantics. Instead, rely on the binary's exit code:
     // valid parses that need IO will fail later with a non-clap error;
     // we only assert the parser does not error out.
-    let output = std::process::Command::new(env!("CARGO_BIN_EXE_firma"))
+    let output = std::process::Command::new(support::firma_bin())
         .args(argv)
         .arg("--help")
         .output()

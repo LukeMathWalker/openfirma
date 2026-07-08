@@ -69,6 +69,19 @@ cd openfirma
 cargo install --path crates/firma --locked
 ```
 
+The repository is migrating to Bazel while keeping Cargo metadata and
+Cargo-native tooling compatible. Pull-request Rust verification runs through the
+Bazel graph that has been ported so far:
+
+```bash
+just bazel-check
+```
+
+For Cargo-native local verification, run `just check`. CI runs Cargo-native
+tests periodically on `main` while Bazel is the PR-time Rust verification path.
+Bazel consumes pinned `openfirma-platforms` release artifacts for shared platform
+labels and prebuilt prost/tonic codegen plugins.
+
 ### Quickstart
 
 `firma` ships as a single precompiled static binary, no build toolchain or API keys required to get started.

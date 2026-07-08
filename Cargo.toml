@@ -33,6 +33,7 @@ missing_const_for_fn = "allow"
 allow_attributes = "warn"
 
 [workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(bazel)'] }
 unsafe_code = "warn"
 
 [workspace.dependencies]

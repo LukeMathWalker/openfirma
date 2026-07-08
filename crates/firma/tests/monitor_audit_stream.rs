@@ -5,6 +5,8 @@ use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::time::Duration;
 
+mod support;
+
 const APPENDED_RECORD: &str = r#"{"event_id":"e1","session_id":"s","token_id":"t","agent_id":"demo-1","action":"github.issue.create","resource":"api.github.com/repos/x/y/issues","decision":1,"deny_reason":"","enforcement_latency_us":150,"context_hash":"","bundle_version":"","timestamp":1715177751000000000,"dispatch_status":201,"dispatch_latency_us":42000,"response_size":128,"signature":[]}"#;
 
 #[test]
@@ -13,7 +15,7 @@ fn monitor_emits_appended_audit_line() {
     let state_dir = tmp.path();
     std::fs::write(state_dir.join("audit.jsonl"), "").expect("seed");
 
-    let mut child = Command::new(env!("CARGO_BIN_EXE_firma"))
+    let mut child = Command::new(support::firma_bin())
         .args(["monitor", "--state-dir"])
         .arg(state_dir)
         .args(["--source", "audit", "--json", "--tail", "--since", "0s"])

@@ -29,8 +29,11 @@
 use std::process::Command;
 
 #[cfg(target_os = "linux")]
+mod support;
+
+#[cfg(target_os = "linux")]
 fn firma_bin() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_BIN_EXE_firma"))
+    support::firma_bin()
 }
 
 /// Substrings that mean the host cannot provide the bubblewrap sandbox
