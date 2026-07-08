@@ -96,6 +96,9 @@ Windows gnullvm toolchain for Windows runners. The `windows-cross` configuration
 keeps the execution platform on the local host so build tools run on macOS or
 Linux while targets are built for Windows gnullvm.
 
+OpenFirma consumes shared Bazel platform labels and prebuilt prost/tonic codegen
+plugins from a pinned `openfirma-platforms` release archive through Bzlmod.
+
 ## Release Artifacts
 
 Release archives are built by the `Release` workflow with Cargo-native platform

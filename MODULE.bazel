@@ -5,6 +5,7 @@ module(
 
 bazel_dep(name = "rules_rs", version = "0.0.94")
 bazel_dep(name = "llvm", version = "0.8.9")
+bazel_dep(name = "openfirma_platforms", version = "0.2.1")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.19")
 bazel_dep(name = "rules_shell", version = "0.8.0")
@@ -16,6 +17,13 @@ single_version_override(
     patch_strip = 1,
     patches = ["//bazel:rules_rs-windows-gnullvm-exec.patch"],
     version = "0.0.94",
+)
+
+archive_override(
+    module_name = "openfirma_platforms",
+    integrity = "sha256-1BJeh06W0k0sK7QvSkB0dGlIU26KyxGQUxbCTZM360s=",
+    strip_prefix = "openfirma-platforms-0.2.1",
+    urls = ["https://github.com/LukeMathWalker/openfirma-platforms/releases/download/v0.2.1/openfirma-platforms-0.2.1.tar.gz"],
 )
 
 # rules_rs provisions the patched rules_rust compatibility repo used by
@@ -30,6 +38,18 @@ use_repo(rules_rust, "rules_rust")
 # Compatibility repo for rules_rust prost APIs; plugin binaries come from rules_rs.
 rules_rust_prost = use_extension("@rules_rs//rs:rules_rust_prost.bzl", "rules_rust_prost")
 use_repo(rules_rust_prost, "rules_rust_prost")
+
+prost_plugins_repository = use_repo_rule("@openfirma_platforms//toolchains:prost_plugins.bzl", "prost_plugins_repository")
+
+prost_plugins_repository(
+    name = "openfirma_prost_plugins",
+    sha256s = {
+        "aarch64-apple-darwin": "4f7fcab6eca9ca586675a5fa68c5ce02e283c3e496441168924518a9abacc1dd",
+        "x86_64-pc-windows-msvc": "3bad7af2bb18e1cc2392d2f7ec891d2a1e9eba2d0d432a270163c85778d62234",
+        "x86_64-unknown-linux-gnu": "2ec188352e7b2baa6cb5c9b8eb3cb3bd78d8efcec9d9a8a02fa9272d81eb04be",
+    },
+    version = "0.2.1",
+)
 
 osx = use_extension("@llvm//extensions:osx.bzl", "osx")
 osx.frameworks(names = [
@@ -81,7 +101,7 @@ toolchains.toolchain(
 use_repo(toolchains, "default_rust_toolchains")
 
 register_toolchains(
-    "//platforms:all",
+    "@openfirma_platforms//platforms:all",
     "@default_rust_toolchains//:all",
     "@llvm//toolchain:all",
 )

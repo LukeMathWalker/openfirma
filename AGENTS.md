@@ -38,6 +38,11 @@ become real Cargo-native dependencies. After changing Cargo/Bazel dependency
 wiring, run `bazel mod tidy`; `just bazel-lockfile-check` verifies the
 checked-in Bazel lock state is current.
 
+OpenFirma consumes the pinned `openfirma-platforms` Bzlmod archive for shared
+platform labels and prebuilt prost/tonic codegen plugins. Keep platform-only
+Bazel labels there rather than adding them back under this repository's
+`//platforms` package.
+
 Bazel uses read-only lockfile mode, a strict action environment, sandboxed
 execution on Linux and macOS, and C/C++ header layering checks by default.
 Windows Bazel jobs use standalone local execution because Bazelisk-installed

@@ -79,6 +79,8 @@ just bazel-check
 
 For Cargo-native local verification, run `just check`. CI runs Cargo-native
 tests periodically on `main` while Bazel is the PR-time Rust verification path.
+Bazel consumes pinned `openfirma-platforms` release artifacts for shared platform
+labels and prebuilt prost/tonic codegen plugins.
 
 ### Quickstart
 
